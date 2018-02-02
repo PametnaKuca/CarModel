@@ -1,0 +1,13 @@
+carmodelboard\freertos.o: ../Src/freertos.c
+carmodelboard\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+carmodelboard\freertos.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+carmodelboard\freertos.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+carmodelboard\freertos.o: ../Inc/FreeRTOSConfig.h
+carmodelboard\freertos.o: ../Inc/main.h
+carmodelboard\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+carmodelboard\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+carmodelboard\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+carmodelboard\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM7/r0p1/portmacro.h
+carmodelboard\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+carmodelboard\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+carmodelboard\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
