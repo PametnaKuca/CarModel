@@ -2616,7 +2616,7 @@ Image Symbol Table
     myTaskCanHandle                          0x20000088   Data           4  main.o(.data)
     myTaskLinHandle                          0x2000008c   Data           4  main.o(.data)
     myTaskLightsHandle                       0x20000090   Data           4  main.o(.data)
-    myTaskBlinkesHandle                      0x20000094   Data           4  main.o(.data)
+    myTaskBlinkersHandle                     0x20000094   Data           4  main.o(.data)
     myTaskStopLightHandle                    0x20000098   Data           4  main.o(.data)
     myTaskDoorsHandle                        0x2000009c   Data           4  main.o(.data)
     myTaskTouchKeysHandle                    0x200000a0   Data           4  main.o(.data)
@@ -2904,7 +2904,7 @@ Image component sizes
          0          0          0          0          0       2864   croutine.o
        484         24          0         24      15360       7507   heap_4.o
        136          0          0          0          0       8870   list.o
-      4298        314        444        125        684      21576   main.o
+      4298        314        444        125        684      21577   main.o
        148         18          0          2       1000       2395   package.o
        646         72          0         12          0      11088   port.o
       1292         14          0          0          0      21374   queue.o
@@ -2927,7 +2927,7 @@ Image component sizes
       2128        172          0         60        240      23037   tasks.o
 
     ----------------------------------------------------------------------
-     18348       1190       1004        232      18376    1093288   Object Totals
+     18348       1190       1004        232      18376    1093289   Object Totals
          0          0         32          0          0          0   (incl. Generated)
         28          0          0          1          4          0   (incl. Padding)
 
@@ -2970,8 +2970,8 @@ Image component sizes
 
       Code (inc. data)   RO Data    RW Data    ZI Data      Debug   
 
-     18932       1216       1004        232      18376    1077820   Grand Totals
-     18932       1216       1004        232      18376    1077820   ELF Image Totals
+     18932       1216       1004        232      18376    1077821   Grand Totals
+     18932       1216       1004        232      18376    1077821   ELF Image Totals
      18932       1216       1004        232          0          0   ROM Totals
 
 ==============================================================================

@@ -76,7 +76,7 @@ osThreadId defaultTaskHandle;
 osThreadId myTaskCanHandle;
 osThreadId myTaskLinHandle;
 osThreadId myTaskLightsHandle;
-osThreadId myTaskBlinkesHandle;
+osThreadId myTaskBlinkersHandle;
 osThreadId myTaskStopLightHandle;
 osThreadId myTaskDoorsHandle;
 osThreadId myTaskTouchKeysHandle;
@@ -170,7 +170,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
- // MX_CAN1_Init();
+//  MX_CAN1_Init();
   MX_I2C2_Init();
   MX_USART3_UART_Init();
   MX_UART4_Init();
@@ -254,9 +254,9 @@ int main(void)
   osThreadDef(myTaskLights, StartTaskLights, osPriorityNormal, 0, 128);
   myTaskLightsHandle = osThreadCreate(osThread(myTaskLights), NULL);
 
-  /* definition and creation of myTaskBlinkes */
-  osThreadDef(myTaskBlinkes, StartTaskBlinkers, osPriorityNormal, 0, 128);
-  myTaskBlinkesHandle = osThreadCreate(osThread(myTaskBlinkes), NULL);
+  /* definition and creation of myTaskBlinkers */
+  osThreadDef(myTaskBlinkers, StartTaskBlinkers, osPriorityNormal, 0, 128);
+  myTaskBlinkersHandle = osThreadCreate(osThread(myTaskBlinkers), NULL);
 
   /* definition and creation of myTaskStopLight */
   osThreadDef(myTaskStopLight, StartTaskStopLight, osPriorityAboveNormal, 0, 128);
