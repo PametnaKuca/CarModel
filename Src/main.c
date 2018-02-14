@@ -55,6 +55,29 @@
 #include "stdlib.h"
 #include "stm32f7xx_it.h"
 #include "package.h"
+
+#define BLINKER_ID							0x01
+#define R_BLINKER_SUB_ID				0x01
+#define L_BLINKER_SUB_ID				0x02
+#define LIGHTS_ID								0x02
+#define LOW_BEAM_SUB_ID					0x01
+#define HIGH_BEAM_SUB_ID				0x02
+#define STOP_LIGHT_ID						0x03
+#define STOP_LIGHT_SUB_ID				0x01
+#define INTERIOR_LIGHT_ID				0x04
+#define INTERIOR_LIGHT_SUB_ID		0x01
+#define WIPER_ID								0x05
+#define WIPER_SUB_ID						0x01
+#define DOOR_ID									0x06
+#define RF_DOOR_CLOSED_SUB_ID		0x01
+#define RR_DOOR_CLOSED_SUB_ID		0x02
+#define LF_DOOR_CLOSED_SUB_ID		0x03
+#define LR_DOOR_CLOSED_SUB_ID		0x04
+#define RF_DOOR_LOCKED_SUB_ID		0x11
+#define RR_DOOR_LOCKED_SUB_ID		0x12
+#define LF_DOOR_LOCKED_SUB_ID		0x13
+#define LR_DOOR_LOCKED_SUB_ID		0x14
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -75,16 +98,25 @@ UART_HandleTypeDef huart3;
 osThreadId defaultTaskHandle;
 osThreadId myTaskCanHandle;
 osThreadId myTaskLinHandle;
-osThreadId myTaskLightsHandle;
-osThreadId myTaskBlinkersHandle;
+osThreadId myTaskLightLowHandle;
+osThreadId myTaskBlinkerRHandle;
 osThreadId myTaskStopLightHandle;
-osThreadId myTaskDoorsHandle;
 osThreadId myTaskTouchKeysHandle;
 osThreadId myTaskI2CHandle;
 osThreadId myTaskInteriorHandle;
 osThreadId myTaskBuzzerHandle;
 osThreadId myTaskProximityHandle;
 osThreadId myTaskWiperHandle;
+osThreadId myTaskBlinkerLHandle;
+osThreadId myTaskLightHighHandle;
+osThreadId myTaskClosedRFHandle;
+osThreadId myTaskClosedRRHandle;
+osThreadId myTaskClosedLFHandle;
+osThreadId myTaskClosedLRHandle;
+osThreadId myTaskLockedRFHandle;
+osThreadId myTaskLockedRRHandle;
+osThreadId myTaskLockedLFHandle;
+osThreadId myTaskLockedLRHandle;
 osMutexId myMutex01Handle;
 osMutexId myMutex02Handle;
 osMutexId myMutex03Handle;
@@ -97,7 +129,10 @@ osMutexId myMutex09Handle;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+
 int16_t button=0;
+uint8_t *dataField;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -116,16 +151,25 @@ static void MX_TIM11_Init(void);
 void StartDefaultTask(void const * argument);
 void StartTaskCan(void const * argument);
 void StartTaskLin(void const * argument);
-void StartTaskLights(void const * argument);
-void StartTaskBlinkers(void const * argument);
-void StartTaskStopLight(void const * argument);
-void StartTaskDoors(void const * argument);
+void StartTaskLightsLow(void const * argument);
+void StartTaskBlinkersRight(void const * argument);
+void StartTaskStopLights(void const * argument);
 void StartTaskTouchKeys(void const * argument);
 void StartTaskI2C(void const * argument);
 void StartTaskInterior(void const * argument);
 void StartTaskBuzzer(void const * argument);
 void StartTaskProximity(void const * argument);
 void StartTaskWiper(void const * argument);
+void StartTaskBlinkersLeft(void const * argument);
+void StartTaskLightsHigh(void const * argument);
+void StartTaskClosedRF(void const * argument);
+void StartTaskClosedRR(void const * argument);
+void StartTaskClosedLF(void const * argument);
+void StartTaskClosedLR(void const * argument);
+void StartTaskLockedRF(void const * argument);
+void StartTaskLockedRR(void const * argument);
+void StartTaskLockedLF(void const * argument);
+void StartTaskLockedLR(void const * argument);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
@@ -170,7 +214,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-//  MX_CAN1_Init();
+  MX_CAN1_Init();
   MX_I2C2_Init();
   MX_USART3_UART_Init();
   MX_UART4_Init();
@@ -239,7 +283,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityAboveNormal, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of myTaskCan */
@@ -250,24 +294,20 @@ int main(void)
   osThreadDef(myTaskLin, StartTaskLin, osPriorityNormal, 0, 128);
   myTaskLinHandle = osThreadCreate(osThread(myTaskLin), NULL);
 
-  /* definition and creation of myTaskLights */
-  osThreadDef(myTaskLights, StartTaskLights, osPriorityNormal, 0, 128);
-  myTaskLightsHandle = osThreadCreate(osThread(myTaskLights), NULL);
+  /* definition and creation of myTaskLightLow */
+  osThreadDef(myTaskLightLow, StartTaskLightsLow, osPriorityNormal, 0, 128);
+  myTaskLightLowHandle = osThreadCreate(osThread(myTaskLightLow), NULL);
 
-  /* definition and creation of myTaskBlinkers */
-  osThreadDef(myTaskBlinkers, StartTaskBlinkers, osPriorityNormal, 0, 128);
-  myTaskBlinkersHandle = osThreadCreate(osThread(myTaskBlinkers), NULL);
+  /* definition and creation of myTaskBlinkerR */
+  osThreadDef(myTaskBlinkerR, StartTaskBlinkersRight, osPriorityNormal, 0, 128);
+  myTaskBlinkerRHandle = osThreadCreate(osThread(myTaskBlinkerR), NULL);
 
   /* definition and creation of myTaskStopLight */
-  osThreadDef(myTaskStopLight, StartTaskStopLight, osPriorityAboveNormal, 0, 128);
+  osThreadDef(myTaskStopLight, StartTaskStopLights, osPriorityNormal, 0, 128);
   myTaskStopLightHandle = osThreadCreate(osThread(myTaskStopLight), NULL);
 
-  /* definition and creation of myTaskDoors */
-  osThreadDef(myTaskDoors, StartTaskDoors, osPriorityNormal, 0, 128);
-  myTaskDoorsHandle = osThreadCreate(osThread(myTaskDoors), NULL);
-
   /* definition and creation of myTaskTouchKeys */
-  osThreadDef(myTaskTouchKeys, StartTaskTouchKeys, osPriorityAboveNormal, 0, 128);
+  osThreadDef(myTaskTouchKeys, StartTaskTouchKeys, osPriorityNormal, 0, 128);
   myTaskTouchKeysHandle = osThreadCreate(osThread(myTaskTouchKeys), NULL);
 
   /* definition and creation of myTaskI2C */
@@ -289,6 +329,46 @@ int main(void)
   /* definition and creation of myTaskWiper */
   osThreadDef(myTaskWiper, StartTaskWiper, osPriorityNormal, 0, 128);
   myTaskWiperHandle = osThreadCreate(osThread(myTaskWiper), NULL);
+
+  /* definition and creation of myTaskBlinkerL */
+  osThreadDef(myTaskBlinkerL, StartTaskBlinkersLeft, osPriorityNormal, 0, 128);
+  myTaskBlinkerLHandle = osThreadCreate(osThread(myTaskBlinkerL), NULL);
+
+  /* definition and creation of myTaskLightHigh */
+  osThreadDef(myTaskLightHigh, StartTaskLightsHigh, osPriorityNormal, 0, 128);
+  myTaskLightHighHandle = osThreadCreate(osThread(myTaskLightHigh), NULL);
+
+  /* definition and creation of myTaskClosedRF */
+  osThreadDef(myTaskClosedRF, StartTaskClosedRF, osPriorityNormal, 0, 128);
+  myTaskClosedRFHandle = osThreadCreate(osThread(myTaskClosedRF), NULL);
+
+  /* definition and creation of myTaskClosedRR */
+  osThreadDef(myTaskClosedRR, StartTaskClosedRR, osPriorityNormal, 0, 128);
+  myTaskClosedRRHandle = osThreadCreate(osThread(myTaskClosedRR), NULL);
+
+  /* definition and creation of myTaskClosedLF */
+  osThreadDef(myTaskClosedLF, StartTaskClosedLF, osPriorityNormal, 0, 128);
+  myTaskClosedLFHandle = osThreadCreate(osThread(myTaskClosedLF), NULL);
+
+  /* definition and creation of myTaskClosedLR */
+  osThreadDef(myTaskClosedLR, StartTaskClosedLR, osPriorityNormal, 0, 128);
+  myTaskClosedLRHandle = osThreadCreate(osThread(myTaskClosedLR), NULL);
+
+  /* definition and creation of myTaskLockedRF */
+  osThreadDef(myTaskLockedRF, StartTaskLockedRF, osPriorityNormal, 0, 128);
+  myTaskLockedRFHandle = osThreadCreate(osThread(myTaskLockedRF), NULL);
+
+  /* definition and creation of myTaskLockedRR */
+  osThreadDef(myTaskLockedRR, StartTaskLockedRR, osPriorityNormal, 0, 128);
+  myTaskLockedRRHandle = osThreadCreate(osThread(myTaskLockedRR), NULL);
+
+  /* definition and creation of myTaskLockedLF */
+  osThreadDef(myTaskLockedLF, StartTaskLockedLF, osPriorityNormal, 0, 128);
+  myTaskLockedLFHandle = osThreadCreate(osThread(myTaskLockedLF), NULL);
+
+  /* definition and creation of myTaskLockedLR */
+  osThreadDef(myTaskLockedLR, StartTaskLockedLR, osPriorityNormal, 0, 128);
+  myTaskLockedLRHandle = osThreadCreate(osThread(myTaskLockedLR), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1018,10 +1098,83 @@ void StartDefaultTask(void const * argument)
 {
 
   /* USER CODE BEGIN 5 */
+	char *message, *str;
+	
   /* Infinite loop */
   for(;;)
   {
 		xSemaphoreTake(myMutex01Handle, portMAX_DELAY);
+		if(HAL_UART_Receive(&huart3, (uint8_t *) message, 100, 10) == HAL_OK)
+		{
+			// str = stringSplit(message);
+			xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+			// dataField = str[2];
+			xSemaphoreGive(myMutex02Handle);
+			switch(str[0])
+			{
+				case 0x01:
+					if(str[1] == 0x01){
+						osThreadSetPriority(myTaskBlinkerRHandle, osPriorityAboveNormal);
+					} else {
+						osThreadSetPriority(myTaskBlinkerLHandle, osPriorityAboveNormal);
+					}
+					break;
+				case 0x02:
+					if(str[1] == 0x01){
+						osThreadSetPriority(myTaskLightLowHandle, osPriorityAboveNormal);
+					} else {
+						osThreadSetPriority(myTaskLightHighHandle, osPriorityAboveNormal);
+					}
+					break;
+				case 0x03:
+					if(str[1] == 0x01){
+						osThreadSetPriority(myTaskStopLightHandle, osPriorityAboveNormal);
+					}
+					break;
+				case 0x04:
+					if(str[1] == 0x01){
+						osThreadSetPriority(myTaskInteriorHandle, osPriorityAboveNormal);
+					}
+					break;
+				case 0x05:
+					if(str[1] == 0x01){
+						osThreadSetPriority(myTaskWiperHandle, osPriorityAboveNormal);
+					}
+					break;
+				case 0x06:
+					switch(str[1]){
+						case 0x01:
+							osThreadSetPriority(myTaskClosedRFHandle, osPriorityAboveNormal);
+							break;
+						case 0x02:
+							osThreadSetPriority(myTaskClosedRRHandle, osPriorityAboveNormal);
+							break;
+						case 0x03:
+							osThreadSetPriority(myTaskClosedLFHandle, osPriorityAboveNormal);
+							break;
+						case 0x04:
+							osThreadSetPriority(myTaskClosedLRHandle, osPriorityAboveNormal);
+							break;
+					}
+					break;
+				case 0x07:
+					switch(str[1]){
+						case 0x01:
+							osThreadSetPriority(myTaskLockedRFHandle, osPriorityAboveNormal);
+							break;
+						case 0x02:
+							osThreadSetPriority(myTaskLockedRRHandle, osPriorityAboveNormal);
+							break;
+						case 0x03:
+							osThreadSetPriority(myTaskLockedLFHandle, osPriorityAboveNormal);
+							break;
+						case 0x04:
+							osThreadSetPriority(myTaskLockedLRHandle, osPriorityAboveNormal);
+							break;
+					}
+					break;
+			}
+		}
 		HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
 		xSemaphoreGive(myMutex01Handle);
     osDelay(100);
@@ -1036,7 +1189,7 @@ void StartTaskCan(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-		xSemaphoreTake(myMutex01Handle, portMAX_DELAY);
+		xSemaphoreTake(myMutex01Handle, portMAX_DELAY);		
 		HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
 		xSemaphoreGive(myMutex01Handle);
     osDelay(1000);
@@ -1069,177 +1222,45 @@ void StartTaskLin(void const * argument)
   /* USER CODE END StartTaskLin */
 }
 
-/* StartTaskLights function */
-void StartTaskLights(void const * argument)
+/* StartTaskLightsLow function */
+void StartTaskLightsLow(void const * argument)
 {
-  /* USER CODE BEGIN StartTaskLights */
-  /* Infinite loop */
-
-
-  for(;;)
-  {
-		
-			if (button==0)
-		{
-			HAL_GPIO_WritePin(L_HIGH_BEAM_GPIO_Port,L_HIGH_BEAM_Pin,0);
-			HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port,R_HIGH_BEAM_Pin,0);
-			HAL_GPIO_WritePin(L_REAR_LIGHT_GPIO_Port,L_REAR_LIGHT_Pin,0);
-			HAL_GPIO_WritePin(R_REAR_LIGHT_GPIO_Port,R_REAR_LIGHT_Pin,0);
-			setPWM(htim14, TIM_CHANNEL_1, 255, 0); //Low beam lights modulation
-			setPWM(htim13, TIM_CHANNEL_1, 255, 0);
-		}
-			if (button==1)
-			{
-				setPWM(htim14, TIM_CHANNEL_1, 255, 20); //Low beam lights modulation
-				setPWM(htim13, TIM_CHANNEL_1, 255, 20);
-				HAL_GPIO_WritePin(L_REAR_LIGHT_GPIO_Port,L_REAR_LIGHT_Pin,1);
-				HAL_GPIO_WritePin(R_REAR_LIGHT_GPIO_Port,R_REAR_LIGHT_Pin,1);
-			}
-			if (button==2)
-		{
-			HAL_GPIO_WritePin(L_HIGH_BEAM_GPIO_Port,L_HIGH_BEAM_Pin,1);
-			HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port,R_HIGH_BEAM_Pin,1);
-		}
-    osDelay(100);
-  }
-  /* USER CODE END StartTaskLights */
-}
-
-/* StartTaskBlinkers function */
-void StartTaskBlinkers(void const * argument)
-{
-  /* USER CODE BEGIN StartTaskBlinkers */
-  /* Infinite loop */
-  for(;;)
-  {
-		if (button==0)
-		{
-			HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port,LF_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port,LR_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port,LM_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(RF_BLINKER_GPIO_Port,RF_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port,RR_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port,RM_BLINKER_Pin,0);
-		}
-		if (button==1)
-		{
-			HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port,LF_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port,LR_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port,LM_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(RF_BLINKER_GPIO_Port,RF_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port,RR_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port,RM_BLINKER_Pin,0);
-		}
-		if (button==2)
-		{
-			HAL_GPIO_WritePin(RF_BLINKER_GPIO_Port,RF_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port,RR_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port,RM_BLINKER_Pin,0);
-			HAL_GPIO_TogglePin(LF_BLINKER_GPIO_Port,LF_BLINKER_Pin);
-			HAL_GPIO_TogglePin(LR_BLINKER_GPIO_Port,LR_BLINKER_Pin);
-			HAL_GPIO_TogglePin(LM_BLINKER_GPIO_Port,LM_BLINKER_Pin);
-		}
-		if (button==3)
-		{
-			HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port,LF_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port,LR_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port,LM_BLINKER_Pin,0);
-			HAL_GPIO_TogglePin(RF_BLINKER_GPIO_Port,RF_BLINKER_Pin);
-			HAL_GPIO_TogglePin(RR_BLINKER_GPIO_Port,RR_BLINKER_Pin);
-			HAL_GPIO_TogglePin(RM_BLINKER_GPIO_Port,RM_BLINKER_Pin);
-		}
-			if (button==4)
-		{
-			
-			HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port,LF_BLINKER_Pin,1);
-			HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port,LR_BLINKER_Pin,1);
-			HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port,LM_BLINKER_Pin,1);
-			HAL_GPIO_WritePin(RF_BLINKER_GPIO_Port,RF_BLINKER_Pin,1);
-			HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port,RR_BLINKER_Pin,1);
-			HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port,RM_BLINKER_Pin,1);
-			osDelay(500);
-			HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port,LF_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port,LR_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port,LM_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(RF_BLINKER_GPIO_Port,RF_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port,RR_BLINKER_Pin,0);
-			HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port,RM_BLINKER_Pin,0);
-		}
+  /* USER CODE BEGIN StartTaskLightsLow */
+	uint8_t *tempStr;
 	
-    osDelay(500);
-  }
-  /* USER CODE END StartTaskBlinkers */
-}
-
-/* StartTaskStopLight function */
-void StartTaskStopLight(void const * argument)
-{
-  /* USER CODE BEGIN StartTaskStopLight */
-  /* Infinite loop */
-	
- for(;;)
-  {
-				if (button==2)
-			{
-				HAL_GPIO_WritePin(L_STOP_LIGHT_GPIO_Port,L_STOP_LIGHT_Pin,1);
-				HAL_GPIO_WritePin(R_STOP_LIGHT_GPIO_Port,R_STOP_LIGHT_Pin,1);
-				HAL_GPIO_WritePin(M_STOP_LIGHT_GPIO_Port,M_STOP_LIGHT_Pin,1);
-			}
-			if (button==0)
-			{
-				HAL_GPIO_WritePin(L_STOP_LIGHT_GPIO_Port,L_STOP_LIGHT_Pin,0);
-				HAL_GPIO_WritePin(R_STOP_LIGHT_GPIO_Port,R_STOP_LIGHT_Pin,0);
-				HAL_GPIO_WritePin(M_STOP_LIGHT_GPIO_Port,M_STOP_LIGHT_Pin,0);
-			}
-    osDelay(100);
- }
-		
-  /* USER CODE END StartTaskStopLight */
-}
-
-/* StartTaskDoors function */
-void StartTaskDoors(void const * argument)
-{
-  /* USER CODE BEGIN StartTaskDoors */
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-		if (button==0)
-		{
-			HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port,LF_DOOR_CLOSED_Pin,0);
-			HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port,LF_DOOR_LOCKED_Pin,0);
-			HAL_GPIO_WritePin(RF_DOOR_CLOSED_GPIO_Port,RF_DOOR_CLOSED_Pin,0);
-			HAL_GPIO_WritePin(RF_DOOR_LOCKED_GPIO_Port,RF_DOOR_LOCKED_Pin,0);
-			
-			
-			HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port,LR_DOOR_CLOSED_Pin,0);
-			HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port,LR_DOOR_LOCKED_Pin,0);
-			HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port,RR_DOOR_CLOSED_Pin,0);
-			HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port,RR_DOOR_LOCKED_Pin,0);
-		}
-		
-				if (button==1)
-		{
-			HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port,LF_DOOR_CLOSED_Pin,1);
-			HAL_GPIO_WritePin(RF_DOOR_CLOSED_GPIO_Port,RF_DOOR_CLOSED_Pin,1);
-			
-			
-			HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port,LR_DOOR_CLOSED_Pin,1);
-			HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port,RR_DOOR_CLOSED_Pin,1);
-		}
-		
-				if (button==2)
-		{
-			HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port,LF_DOOR_LOCKED_Pin,1);
-			HAL_GPIO_WritePin(RF_DOOR_LOCKED_GPIO_Port,RF_DOOR_LOCKED_Pin,1);
-			
-			
-			HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port,LR_DOOR_LOCKED_Pin,1);
-			HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port,RR_DOOR_LOCKED_Pin,1);
-		}
-    osDelay(100);
+    osDelay(1);
   }
-  /* USER CODE END StartTaskDoors */
+  /* USER CODE END StartTaskLightsLow */
+}
+
+/* StartTaskBlinkersRight function */
+void StartTaskBlinkersRight(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskBlinkersRight */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskBlinkersRight */
+}
+
+/* StartTaskStopLights function */
+void StartTaskStopLights(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskStopLights */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskStopLights */
 }
 
 /* StartTaskTouchKeys function */
@@ -1362,7 +1383,7 @@ void StartTaskWiper(void const * argument)
 			}
 			if (HAL_GPIO_ReadPin(WIPER_2_GPIO_Port,WIPER_2_Pin)==GPIO_PIN_SET)
 			{
-				HAL_GPIO_WritePin(WIPER_1_GPIO_Port,WIPER_1_Pin,1);
+				HAL_GPIO_WritePin(WIPER_1_GPIO_Port,WIPER_1_Pin, GPIO_PIN_SET);
 			}
 			if (HAL_GPIO_ReadPin(WIPER_3_GPIO_Port,WIPER_3_Pin)==GPIO_PIN_SET)
 			{
@@ -1399,6 +1420,126 @@ void StartTaskWiper(void const * argument)
     osDelay(100);
   }
   /* USER CODE END StartTaskWiper */
+}
+
+/* StartTaskBlinkersLeft function */
+void StartTaskBlinkersLeft(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskBlinkersLeft */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskBlinkersLeft */
+}
+
+/* StartTaskLightsHigh function */
+void StartTaskLightsHigh(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskLightsHigh */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskLightsHigh */
+}
+
+/* StartTaskClosedRF function */
+void StartTaskClosedRF(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskClosedRF */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskClosedRF */
+}
+
+/* StartTaskClosedRR function */
+void StartTaskClosedRR(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskClosedRR */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskClosedRR */
+}
+
+/* StartTaskClosedLF function */
+void StartTaskClosedLF(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskClosedLF */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskClosedLF */
+}
+
+/* StartTaskClosedLR function */
+void StartTaskClosedLR(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskClosedLR */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskClosedLR */
+}
+
+/* StartTaskLockedRF function */
+void StartTaskLockedRF(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskLockedRF */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskLockedRF */
+}
+
+/* StartTaskLockedRR function */
+void StartTaskLockedRR(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskLockedRR */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskLockedRR */
+}
+
+/* StartTaskLockedLF function */
+void StartTaskLockedLF(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskLockedLF */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskLockedLF */
+}
+
+/* StartTaskLockedLR function */
+void StartTaskLockedLR(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskLockedLR */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskLockedLR */
 }
 
 /**
