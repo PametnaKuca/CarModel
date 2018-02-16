@@ -68,15 +68,13 @@
 #define INTERIOR_LIGHT_SUB_ID		0x01
 #define WIPER_ID								0x05
 #define WIPER_SUB_ID						0x01
-#define DOOR_ID									0x06
-#define RF_DOOR_CLOSED_SUB_ID		0x01
-#define RR_DOOR_CLOSED_SUB_ID		0x02
-#define LF_DOOR_CLOSED_SUB_ID		0x03
-#define LR_DOOR_CLOSED_SUB_ID		0x04
-#define RF_DOOR_LOCKED_SUB_ID		0x11
-#define RR_DOOR_LOCKED_SUB_ID		0x12
-#define LF_DOOR_LOCKED_SUB_ID		0x13
-#define LR_DOOR_LOCKED_SUB_ID		0x14
+#define DOOR_CLOSED_ID					0x06
+#define DOOR_LOCKED_ID					0x07
+#define RF_DOOR_SUB_ID					0x01
+#define RR_DOOR_SUB_ID					0x02
+#define LF_DOOR_SUB_ID					0x03
+#define LR_DOOR_SUB_ID					0x04
+
 
 /* USER CODE END Includes */
 
@@ -132,6 +130,8 @@ osMutexId myMutex09Handle;
 
 int16_t button=0;
 uint8_t *dataField;
+static uint8_t flag = 0;
+static uint8_t wiperFlag = 0;
 
 /* USER CODE END PV */
 
@@ -1112,63 +1112,63 @@ void StartDefaultTask(void const * argument)
 			xSemaphoreGive(myMutex02Handle);
 			switch(str[0])
 			{
-				case 0x01:
-					if(str[1] == 0x01){
+				case BLINKER_ID:
+					if(str[1] == R_BLINKER_SUB_ID){
 						osThreadSetPriority(myTaskBlinkerRHandle, osPriorityAboveNormal);
-					} else {
+					} else if(str[1] == L_BLINKER_SUB_ID){
 						osThreadSetPriority(myTaskBlinkerLHandle, osPriorityAboveNormal);
 					}
 					break;
-				case 0x02:
-					if(str[1] == 0x01){
+				case LIGHTS_ID:
+					if(str[1] == LOW_BEAM_SUB_ID){
 						osThreadSetPriority(myTaskLightLowHandle, osPriorityAboveNormal);
-					} else {
+					} else if(str[1] == HIGH_BEAM_SUB_ID){
 						osThreadSetPriority(myTaskLightHighHandle, osPriorityAboveNormal);
 					}
 					break;
-				case 0x03:
-					if(str[1] == 0x01){
+				case STOP_LIGHT_ID:
+					if(str[1] == STOP_LIGHT_SUB_ID){
 						osThreadSetPriority(myTaskStopLightHandle, osPriorityAboveNormal);
 					}
 					break;
-				case 0x04:
-					if(str[1] == 0x01){
+				case INTERIOR_LIGHT_ID:
+					if(str[1] == INTERIOR_LIGHT_SUB_ID){
 						osThreadSetPriority(myTaskInteriorHandle, osPriorityAboveNormal);
 					}
 					break;
-				case 0x05:
-					if(str[1] == 0x01){
+				case WIPER_ID:
+					if(str[1] == WIPER_SUB_ID){
 						osThreadSetPriority(myTaskWiperHandle, osPriorityAboveNormal);
 					}
 					break;
-				case 0x06:
+				case DOOR_CLOSED_ID:
 					switch(str[1]){
-						case 0x01:
+						case RF_DOOR_SUB_ID:
 							osThreadSetPriority(myTaskClosedRFHandle, osPriorityAboveNormal);
 							break;
-						case 0x02:
+						case RR_DOOR_SUB_ID:
 							osThreadSetPriority(myTaskClosedRRHandle, osPriorityAboveNormal);
 							break;
-						case 0x03:
+						case LF_DOOR_SUB_ID:
 							osThreadSetPriority(myTaskClosedLFHandle, osPriorityAboveNormal);
 							break;
-						case 0x04:
+						case LR_DOOR_SUB_ID:
 							osThreadSetPriority(myTaskClosedLRHandle, osPriorityAboveNormal);
 							break;
 					}
 					break;
-				case 0x07:
+				case DOOR_LOCKED_ID:
 					switch(str[1]){
-						case 0x01:
+						case RF_DOOR_SUB_ID:
 							osThreadSetPriority(myTaskLockedRFHandle, osPriorityAboveNormal);
 							break;
-						case 0x02:
+						case RR_DOOR_SUB_ID:
 							osThreadSetPriority(myTaskLockedRRHandle, osPriorityAboveNormal);
 							break;
-						case 0x03:
+						case LF_DOOR_SUB_ID:
 							osThreadSetPriority(myTaskLockedLFHandle, osPriorityAboveNormal);
 							break;
-						case 0x04:
+						case LR_DOOR_SUB_ID:
 							osThreadSetPriority(myTaskLockedLRHandle, osPriorityAboveNormal);
 							break;
 					}
@@ -1193,8 +1193,6 @@ void StartTaskCan(void const * argument)
 		HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
 		xSemaphoreGive(myMutex01Handle);
     osDelay(1000);
-		
-		
   }
   /* USER CODE END StartTaskCan */
 }
@@ -1231,10 +1229,25 @@ void StartTaskLightsLow(void const * argument)
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
 	xSemaphoreGive(myMutex02Handle);
+	
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if (tempStr[0] == '1') {
+			HAL_GPIO_WritePin(R_LOW_BEAM_GPIO_Port, R_LOW_BEAM_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(R_REAR_LIGHT_GPIO_Port, R_REAR_LIGHT_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(L_LOW_BEAM_GPIO_Port, L_LOW_BEAM_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(L_REAR_LIGHT_GPIO_Port, L_REAR_LIGHT_Pin, GPIO_PIN_SET);
+		} else if (tempStr[0] == '0') {
+			HAL_GPIO_WritePin(R_LOW_BEAM_GPIO_Port, R_LOW_BEAM_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(R_REAR_LIGHT_GPIO_Port, R_REAR_LIGHT_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L_LOW_BEAM_GPIO_Port, L_LOW_BEAM_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L_REAR_LIGHT_GPIO_Port, L_REAR_LIGHT_Pin, GPIO_PIN_RESET);		
+		} else {
+			printf("Sent wrong data byte!\n");
+		}
+		osThreadSetPriority(myTaskLightLowHandle, osPriorityNormal);
+    osDelay(50);
   }
   /* USER CODE END StartTaskLightsLow */
 }
@@ -1243,10 +1256,36 @@ void StartTaskLightsLow(void const * argument)
 void StartTaskBlinkersRight(void const * argument)
 {
   /* USER CODE BEGIN StartTaskBlinkersRight */
+	// we declare it static for not losing data when changing tasks
+	static uint8_t *tempRBlinkerStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempRBlinkerStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if (tempRBlinkerStr[0] == '1'){
+			if (!flag) {
+				HAL_GPIO_WritePin(RF_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_SET);
+				flag = 1;
+			} else {
+				HAL_GPIO_WritePin(RF_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
+				flag = 0;
+			}
+		} else if (tempRBlinkerStr[0] == '0'){
+			HAL_GPIO_WritePin(RF_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
+			flag = 0;
+			osThreadSetPriority(myTaskBlinkerRHandle, osPriorityNormal);
+		}
+		
+    osDelay(500);
   }
   /* USER CODE END StartTaskBlinkersRight */
 }
@@ -1255,10 +1294,25 @@ void StartTaskBlinkersRight(void const * argument)
 void StartTaskStopLights(void const * argument)
 {
   /* USER CODE BEGIN StartTaskStopLights */
+	uint8_t *tempStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if(tempStr[0] == '1'){
+			HAL_GPIO_WritePin(R_STOP_LIGHT_GPIO_Port, R_STOP_LIGHT_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(M_STOP_LIGHT_GPIO_Port, M_STOP_LIGHT_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(L_STOP_LIGHT_GPIO_Port, L_STOP_LIGHT_Pin, GPIO_PIN_SET);
+		} else if(tempStr[0] == '0') {
+			HAL_GPIO_WritePin(R_STOP_LIGHT_GPIO_Port, R_STOP_LIGHT_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(M_STOP_LIGHT_GPIO_Port, M_STOP_LIGHT_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L_STOP_LIGHT_GPIO_Port, L_STOP_LIGHT_Pin, GPIO_PIN_RESET);
+		}
+		osThreadSetPriority(myTaskStopLightHandle, osPriorityNormal);
+    osDelay(100);
   }
   /* USER CODE END StartTaskStopLights */
 }
@@ -1291,12 +1345,20 @@ void StartTaskI2C(void const * argument)
 void StartTaskInterior(void const * argument)
 {
   /* USER CODE BEGIN StartTaskInterior */
-	static int R=0;
-	static int G=85;
-	static int B=170;
+	static int R;
+	static int G;
+	static int B;
 	static int incDecR = 1;
 	static int incDecG = 1;
 	static int incDecB = 1;
+	uint8_t *tempStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
+	R = tempStr[0];
+	G = tempStr[1];
+	B = tempStr[2];
   /* Infinite loop */
  for(;;)
   {
@@ -1370,54 +1432,66 @@ void StartTaskWiper(void const * argument)
 {
   /* USER CODE BEGIN StartTaskWiper */
 	int16_t i;
+	uint8_t *tempStr, freq, onoff;
+	uint16_t period;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
+	onoff = tempStr[0];
+	freq = tempStr[1];
+	
+	// period is time in which all 4 leds turn on and all 4 turn off
+	// period = scalePeriod();
   /* Infinite loop */
   for(;;)
-  {   
-    if (i<=2)
-		{
-
-			if (HAL_GPIO_ReadPin(WIPER_1_GPIO_Port,WIPER_1_Pin)==GPIO_PIN_SET)
-			{
-				HAL_GPIO_WritePin(WIPER_0_GPIO_Port,WIPER_0_Pin,1);
-				i++;
-			}
-			if (HAL_GPIO_ReadPin(WIPER_2_GPIO_Port,WIPER_2_Pin)==GPIO_PIN_SET)
-			{
-				HAL_GPIO_WritePin(WIPER_1_GPIO_Port,WIPER_1_Pin, GPIO_PIN_SET);
-			}
-			if (HAL_GPIO_ReadPin(WIPER_3_GPIO_Port,WIPER_3_Pin)==GPIO_PIN_SET)
-			{
-				HAL_GPIO_WritePin(WIPER_2_GPIO_Port,WIPER_2_Pin,1);
-			}
-			if (HAL_GPIO_ReadPin(WIPER_0_GPIO_Port,WIPER_0_Pin)==GPIO_PIN_RESET&&HAL_GPIO_ReadPin(WIPER_2_GPIO_Port,WIPER_2_Pin)==GPIO_PIN_RESET&&HAL_GPIO_ReadPin(WIPER_1_GPIO_Port,WIPER_1_Pin)==GPIO_PIN_RESET)
-			{
-				HAL_GPIO_WritePin(WIPER_3_GPIO_Port,WIPER_3_Pin,1);
-			}
-			
+  {   		
+		switch (wiperFlag){
+			case 0:
+				HAL_GPIO_WritePin(WIPER_3_GPIO_Port, WIPER_3_Pin, GPIO_PIN_SET);
+				wiperFlag++;
+				osDelay(period/8);
+				break;
+			case 1:
+				HAL_GPIO_WritePin(WIPER_2_GPIO_Port, WIPER_2_Pin, GPIO_PIN_SET);
+				wiperFlag++;
+				osDelay(period/8);
+				break;
+			case 2:
+				HAL_GPIO_WritePin(WIPER_1_GPIO_Port, WIPER_1_Pin, GPIO_PIN_SET);
+				wiperFlag++;
+				osDelay(period/8);
+				break;
+			case 3:
+				HAL_GPIO_WritePin(WIPER_0_GPIO_Port, WIPER_0_Pin, GPIO_PIN_SET);
+				wiperFlag++;
+				osDelay(period/8);
+				break;
+			case 4:
+				HAL_GPIO_WritePin(WIPER_0_GPIO_Port, WIPER_0_Pin, GPIO_PIN_RESET);
+				wiperFlag++;
+				osDelay(period/8);
+				break;
+			case 5:
+				HAL_GPIO_WritePin(WIPER_1_GPIO_Port, WIPER_1_Pin, GPIO_PIN_RESET);
+				wiperFlag++;
+				osDelay(period/8);
+				break;
+			case 6:
+				HAL_GPIO_WritePin(WIPER_2_GPIO_Port, WIPER_2_Pin, GPIO_PIN_RESET);
+				wiperFlag++;
+				osDelay(period/8);
+				break;
+			case 7:
+				HAL_GPIO_WritePin(WIPER_3_GPIO_Port, WIPER_3_Pin, GPIO_PIN_RESET);
+				wiperFlag++;
+				osDelay(period/8);
+				break;
+			default:
+				wiperFlag = 0;
+				osDelay(period/2);
 		}
-		if (i==3)
-		{
-			  if (HAL_GPIO_ReadPin(WIPER_2_GPIO_Port,WIPER_2_Pin)==GPIO_PIN_RESET)
-				
-			{
-				HAL_GPIO_WritePin(WIPER_3_GPIO_Port,WIPER_3_Pin,0);
-					i=0;
-			}
-			if (HAL_GPIO_ReadPin(WIPER_1_GPIO_Port,WIPER_1_Pin)==GPIO_PIN_RESET)
-			{
-				HAL_GPIO_WritePin(WIPER_2_GPIO_Port,WIPER_2_Pin,0);
-			}
-			if (HAL_GPIO_ReadPin(WIPER_0_GPIO_Port,WIPER_0_Pin)==GPIO_PIN_RESET)
-			{
-				HAL_GPIO_WritePin(WIPER_1_GPIO_Port,WIPER_1_Pin,0);
-			}
-			if (HAL_GPIO_ReadPin(WIPER_3_GPIO_Port,WIPER_3_Pin)==GPIO_PIN_SET&&HAL_GPIO_ReadPin(WIPER_2_GPIO_Port,WIPER_2_Pin)==GPIO_PIN_SET&&HAL_GPIO_ReadPin(WIPER_1_GPIO_Port,WIPER_1_Pin)==GPIO_PIN_SET)
-			{
-				HAL_GPIO_WritePin(WIPER_0_GPIO_Port,WIPER_0_Pin,0);
-			}
-		}
-		
-    osDelay(100);
+    //osDelay(100);
   }
   /* USER CODE END StartTaskWiper */
 }
@@ -1426,11 +1500,36 @@ void StartTaskWiper(void const * argument)
 void StartTaskBlinkersLeft(void const * argument)
 {
   /* USER CODE BEGIN StartTaskBlinkersLeft */
+  static uint8_t *tempLBlinkerStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempLBlinkerStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
-  }
+		if (tempLBlinkerStr[0] == '1'){
+			if (!flag) {
+				HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_SET);
+				flag = 1;
+			} else {
+				HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
+				flag = 0;
+			}
+		} else if (tempLBlinkerStr[0] == '0'){
+			HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
+			flag = 0;
+			osThreadSetPriority(myTaskBlinkerLHandle, osPriorityNormal);
+		}
+		
+		osDelay(500);
+	}
   /* USER CODE END StartTaskBlinkersLeft */
 }
 
@@ -1438,10 +1537,30 @@ void StartTaskBlinkersLeft(void const * argument)
 void StartTaskLightsHigh(void const * argument)
 {
   /* USER CODE BEGIN StartTaskLightsHigh */
+  uint8_t *tempStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
+	
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if (tempStr[0] == '1') {
+			HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port, R_HIGH_BEAM_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(R_REAR_LIGHT_GPIO_Port, R_REAR_LIGHT_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(L_HIGH_BEAM_GPIO_Port, L_HIGH_BEAM_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(L_REAR_LIGHT_GPIO_Port, L_REAR_LIGHT_Pin, GPIO_PIN_SET);
+		} else if (tempStr[0] == '0') {
+			HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port, R_HIGH_BEAM_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(R_REAR_LIGHT_GPIO_Port, R_REAR_LIGHT_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L_HIGH_BEAM_GPIO_Port, L_HIGH_BEAM_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(L_REAR_LIGHT_GPIO_Port, L_REAR_LIGHT_Pin, GPIO_PIN_RESET);		
+		} else {
+			printf("Sent wrong data byte!\n");
+		}
+		osThreadSetPriority(myTaskLightHighHandle, osPriorityNormal);
+    osDelay(50);
   }
   /* USER CODE END StartTaskLightsHigh */
 }
@@ -1450,10 +1569,21 @@ void StartTaskLightsHigh(void const * argument)
 void StartTaskClosedRF(void const * argument)
 {
   /* USER CODE BEGIN StartTaskClosedRF */
+	uint8_t *tempStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if(tempStr[0] == '1'){
+			HAL_GPIO_WritePin(RF_DOOR_CLOSED_GPIO_Port, RF_DOOR_CLOSED_Pin, GPIO_PIN_SET);
+		} else if (tempStr[0] == '0'){
+			HAL_GPIO_WritePin(RF_DOOR_CLOSED_GPIO_Port, RF_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
+		}
+		osThreadSetPriority(myTaskClosedRFHandle, osPriorityNormal);
+    osDelay(50);
   }
   /* USER CODE END StartTaskClosedRF */
 }
@@ -1462,10 +1592,21 @@ void StartTaskClosedRF(void const * argument)
 void StartTaskClosedRR(void const * argument)
 {
   /* USER CODE BEGIN StartTaskClosedRR */
+  uint8_t *tempStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if(tempStr[0] == '1'){
+			HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
+		} else if (tempStr[0] == '0'){
+			HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
+		}
+		osThreadSetPriority(myTaskClosedRRHandle, osPriorityNormal);
+    osDelay(50);
   }
   /* USER CODE END StartTaskClosedRR */
 }
@@ -1474,10 +1615,21 @@ void StartTaskClosedRR(void const * argument)
 void StartTaskClosedLF(void const * argument)
 {
   /* USER CODE BEGIN StartTaskClosedLF */
+  uint8_t *tempStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if(tempStr[0] == '1'){
+			HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port, LF_DOOR_CLOSED_Pin, GPIO_PIN_SET);
+		} else if (tempStr[0] == '0'){
+			HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port, LF_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
+		}
+		osThreadSetPriority(myTaskClosedLFHandle, osPriorityNormal);
+    osDelay(50);
   }
   /* USER CODE END StartTaskClosedLF */
 }
@@ -1486,10 +1638,21 @@ void StartTaskClosedLF(void const * argument)
 void StartTaskClosedLR(void const * argument)
 {
   /* USER CODE BEGIN StartTaskClosedLR */
+  uint8_t *tempStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if(tempStr[0] == '1'){
+			HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
+		} else if (tempStr[0] == '0'){
+			HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
+		}
+		osThreadSetPriority(myTaskClosedLRHandle, osPriorityNormal);
+    osDelay(50);
   }
   /* USER CODE END StartTaskClosedLR */
 }
@@ -1498,10 +1661,21 @@ void StartTaskClosedLR(void const * argument)
 void StartTaskLockedRF(void const * argument)
 {
   /* USER CODE BEGIN StartTaskLockedRF */
+  uint8_t *tempStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if(tempStr[0] == '1'){
+			HAL_GPIO_WritePin(RF_DOOR_LOCKED_GPIO_Port, RF_DOOR_LOCKED_Pin, GPIO_PIN_SET);
+		} else if (tempStr[0] == '0'){
+			HAL_GPIO_WritePin(RF_DOOR_LOCKED_GPIO_Port, RF_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
+		}
+		osThreadSetPriority(myTaskLockedRFHandle, osPriorityNormal);
+    osDelay(50);
   }
   /* USER CODE END StartTaskLockedRF */
 }
@@ -1510,10 +1684,21 @@ void StartTaskLockedRF(void const * argument)
 void StartTaskLockedRR(void const * argument)
 {
   /* USER CODE BEGIN StartTaskLockedRR */
+  uint8_t *tempStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if(tempStr[0] == '1'){
+			HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port, RR_DOOR_LOCKED_Pin, GPIO_PIN_SET);
+		} else if (tempStr[0] == '0'){
+			HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port, RR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
+		}
+		osThreadSetPriority(myTaskLockedRRHandle, osPriorityNormal);
+    osDelay(50);
   }
   /* USER CODE END StartTaskLockedRR */
 }
@@ -1522,10 +1707,21 @@ void StartTaskLockedRR(void const * argument)
 void StartTaskLockedLF(void const * argument)
 {
   /* USER CODE BEGIN StartTaskLockedLF */
+  uint8_t *tempStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if(tempStr[0] == '1'){
+			HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_SET);
+		} else if (tempStr[0] == '0'){
+			HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
+		}
+		osThreadSetPriority(myTaskLockedLFHandle, osPriorityNormal);
+    osDelay(50);
   }
   /* USER CODE END StartTaskLockedLF */
 }
@@ -1534,10 +1730,21 @@ void StartTaskLockedLF(void const * argument)
 void StartTaskLockedLR(void const * argument)
 {
   /* USER CODE BEGIN StartTaskLockedLR */
+  uint8_t *tempStr;
+	
+	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+	tempStr = dataField;
+	xSemaphoreGive(myMutex02Handle);
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		if(tempStr[0] == '1'){
+			HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_SET);
+		} else if (tempStr[0] == '0'){
+			HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
+		}
+		osThreadSetPriority(myTaskLockedLRHandle, osPriorityNormal);
+    osDelay(50);
   }
   /* USER CODE END StartTaskLockedLR */
 }
