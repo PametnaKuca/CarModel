@@ -22,7 +22,6 @@ carmodelboard\stm32f7xx_hal_dma_ex.o: ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f
 carmodelboard\stm32f7xx_hal_dma_ex.o: ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_dma.h
 carmodelboard\stm32f7xx_hal_dma_ex.o: ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_dma_ex.h
 carmodelboard\stm32f7xx_hal_dma_ex.o: ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_cortex.h
-carmodelboard\stm32f7xx_hal_dma_ex.o: ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_can.h
 carmodelboard\stm32f7xx_hal_dma_ex.o: ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_flash.h
 carmodelboard\stm32f7xx_hal_dma_ex.o: ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_flash_ex.h
 carmodelboard\stm32f7xx_hal_dma_ex.o: ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_i2c.h
