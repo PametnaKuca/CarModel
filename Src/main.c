@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
-  * File Name          : main.c
-  * Description        : Main program body
+  * @file           : main.c
+  * @brief          : Main program body
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -45,7 +45,6 @@
   *
   ******************************************************************************
   */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f7xx_hal.h"
@@ -79,7 +78,6 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-CAN_HandleTypeDef hcan1;
 
 I2C_HandleTypeDef hi2c2;
 
@@ -138,7 +136,6 @@ static uint8_t wiperFlag = 0;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_CAN1_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_UART4_Init(void);
@@ -176,8 +173,6 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
                                 
                                 
-                                
-                                
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -189,9 +184,13 @@ HAL_StatusTypeDef status;
 uint8_t Test2[5];
 /* USER CODE END 0 */
 
+/**
+  * @brief  The application entry point.
+  *
+  * @retval None
+  */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -214,7 +213,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_CAN1_Init();
   MX_I2C2_Init();
   MX_USART3_UART_Init();
   MX_UART4_Init();
@@ -224,7 +222,6 @@ int main(void)
   MX_TIM13_Init();
   MX_TIM14_Init();
   MX_TIM11_Init();
-
   /* USER CODE BEGIN 2 */
 
 	
@@ -397,8 +394,10 @@ int main(void)
 
 }
 
-/** System Clock Configuration
-*/
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
 
@@ -457,29 +456,6 @@ void SystemClock_Config(void)
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 15, 0);
-}
-
-/* CAN1 init function */
-static void MX_CAN1_Init(void)
-{
-
-  hcan1.Instance = CAN1;
-  hcan1.Init.Prescaler = 16;
-  hcan1.Init.Mode = CAN_MODE_NORMAL;
-  hcan1.Init.SJW = CAN_SJW_1TQ;
-  hcan1.Init.BS1 = CAN_BS1_1TQ;
-  hcan1.Init.BS2 = CAN_BS2_1TQ;
-  hcan1.Init.TTCM = DISABLE;
-  hcan1.Init.ABOM = DISABLE;
-  hcan1.Init.AWUM = DISABLE;
-  hcan1.Init.NART = DISABLE;
-  hcan1.Init.RFLM = DISABLE;
-  hcan1.Init.TXFP = DISABLE;
-  if (HAL_CAN_Init(&hcan1) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
 }
 
 /* I2C2 init function */
@@ -689,8 +665,6 @@ static void MX_TIM12_Init(void)
 static void MX_TIM13_Init(void)
 {
 
-  TIM_OC_InitTypeDef sConfigOC;
-
   htim13.Instance = TIM13;
   htim13.Init.Prescaler = 0;
   htim13.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -702,29 +676,11 @@ static void MX_TIM13_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  if (HAL_TIM_PWM_Init(&htim13) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim13, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  HAL_TIM_MspPostInit(&htim13);
-
 }
 
 /* TIM14 init function */
 static void MX_TIM14_Init(void)
 {
-
-  TIM_OC_InitTypeDef sConfigOC;
 
   htim14.Instance = TIM14;
   htim14.Init.Prescaler = 0;
@@ -736,22 +692,6 @@ static void MX_TIM14_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-
-  if (HAL_TIM_PWM_Init(&htim14) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim14, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  HAL_TIM_MspPostInit(&htim14);
 
 }
 
@@ -841,7 +781,7 @@ static void MX_GPIO_Init(void)
                           |WIPER_0_Pin|R_HIGH_BEAM_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, LF_DOOR_CLOSED_Pin|LF_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOF, LF_DOOR_CLOSED_Pin|R_LOW_BEAM_Pin|L_LOW_BEAM_Pin|LF_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, RF_DOOR_CLOSED_Pin|R_REAR_LIGHT_Pin|R_STOP_LIGHT_Pin, GPIO_PIN_RESET);
@@ -896,8 +836,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LF_DOOR_CLOSED_Pin LF_DOOR_LOCKED_Pin */
-  GPIO_InitStruct.Pin = LF_DOOR_CLOSED_Pin|LF_DOOR_LOCKED_Pin;
+  /*Configure GPIO pins : LF_DOOR_CLOSED_Pin R_LOW_BEAM_Pin L_LOW_BEAM_Pin LF_DOOR_LOCKED_Pin */
+  GPIO_InitStruct.Pin = LF_DOOR_CLOSED_Pin|R_LOW_BEAM_Pin|L_LOW_BEAM_Pin|LF_DOOR_LOCKED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -975,10 +915,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(RMII_TXD1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PD10 PD11 PD15 PD2 
-                           PD3 PD4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_15|GPIO_PIN_2 
-                          |GPIO_PIN_3|GPIO_PIN_4;
+  /*Configure GPIO pins : PD10 PD11 PD15 PD0 
+                           PD1 PD2 PD3 PD4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_15|GPIO_PIN_0 
+                          |GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
@@ -1099,50 +1039,59 @@ void StartDefaultTask(void const * argument)
 
   /* USER CODE BEGIN 5 */
 	char *message, *str;
+	char ID, subID;
+	
+	ID = 0x01;
+	subID = 0x01;
+	dataField[0] = '1';
+	dataField[1] = '\0';
 	
   /* Infinite loop */
   for(;;)
   {
 		xSemaphoreTake(myMutex01Handle, portMAX_DELAY);
-		if(HAL_UART_Receive(&huart3, (uint8_t *) message, 100, 10) == HAL_OK)
-		{
+		//if(HAL_UART_Receive(&huart3, (uint8_t *) message, 100, 10) == HAL_OK)
+		//{
+			xSemaphoreGive(myMutex01Handle);
 			// str = stringSplit(message);
 			xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+			 
+			// subID = str[1];
 			// dataField = str[2];
 			xSemaphoreGive(myMutex02Handle);
-			switch(str[0])
+			switch(ID)
 			{
 				case BLINKER_ID:
-					if(str[1] == R_BLINKER_SUB_ID){
+					if(subID == R_BLINKER_SUB_ID){
 						osThreadSetPriority(myTaskBlinkerRHandle, osPriorityAboveNormal);
-					} else if(str[1] == L_BLINKER_SUB_ID){
+					} else if(subID == L_BLINKER_SUB_ID){
 						osThreadSetPriority(myTaskBlinkerLHandle, osPriorityAboveNormal);
 					}
 					break;
 				case LIGHTS_ID:
-					if(str[1] == LOW_BEAM_SUB_ID){
+					if(subID == LOW_BEAM_SUB_ID){
 						osThreadSetPriority(myTaskLightLowHandle, osPriorityAboveNormal);
-					} else if(str[1] == HIGH_BEAM_SUB_ID){
+					} else if(subID == HIGH_BEAM_SUB_ID){
 						osThreadSetPriority(myTaskLightHighHandle, osPriorityAboveNormal);
 					}
 					break;
 				case STOP_LIGHT_ID:
-					if(str[1] == STOP_LIGHT_SUB_ID){
+					if(subID == STOP_LIGHT_SUB_ID){
 						osThreadSetPriority(myTaskStopLightHandle, osPriorityAboveNormal);
 					}
 					break;
 				case INTERIOR_LIGHT_ID:
-					if(str[1] == INTERIOR_LIGHT_SUB_ID){
+					if(subID == INTERIOR_LIGHT_SUB_ID){
 						osThreadSetPriority(myTaskInteriorHandle, osPriorityAboveNormal);
 					}
 					break;
 				case WIPER_ID:
-					if(str[1] == WIPER_SUB_ID){
+					if(subID == WIPER_SUB_ID){
 						osThreadSetPriority(myTaskWiperHandle, osPriorityAboveNormal);
 					}
 					break;
 				case DOOR_CLOSED_ID:
-					switch(str[1]){
+					switch(subID){
 						case RF_DOOR_SUB_ID:
 							osThreadSetPriority(myTaskClosedRFHandle, osPriorityAboveNormal);
 							break;
@@ -1158,7 +1107,7 @@ void StartDefaultTask(void const * argument)
 					}
 					break;
 				case DOOR_LOCKED_ID:
-					switch(str[1]){
+					switch(subID){
 						case RF_DOOR_SUB_ID:
 							osThreadSetPriority(myTaskLockedRFHandle, osPriorityAboveNormal);
 							break;
@@ -1174,10 +1123,18 @@ void StartDefaultTask(void const * argument)
 					}
 					break;
 			}
-		}
+			ID++;
+			if (ID == 0x08)
+				ID = 0x01;
+			xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+			if(dataField[1] == '1')
+				dataField[1] = '0';
+			else
+				dataField[1] = '1';
+			xSemaphoreGive(myMutex02Handle);
+		//}
 		HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
 		xSemaphoreGive(myMutex01Handle);
-    osDelay(100);
   }
   /* USER CODE END 5 */ 
 }
@@ -1247,7 +1204,7 @@ void StartTaskLightsLow(void const * argument)
 			printf("Sent wrong data byte!\n");
 		}
 		osThreadSetPriority(myTaskLightLowHandle, osPriorityNormal);
-    osDelay(50);
+    osDelay(100);
   }
   /* USER CODE END StartTaskLightsLow */
 }
@@ -1266,21 +1223,21 @@ void StartTaskBlinkersRight(void const * argument)
   for(;;)
   {
 		if (tempRBlinkerStr[0] == '1'){
-			if (!flag) {
+			if (flag == 0) {
 				HAL_GPIO_WritePin(RF_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port, RM_BLINKER_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port, RR_BLINKER_Pin, GPIO_PIN_SET);
 				flag = 1;
 			} else {
 				HAL_GPIO_WritePin(RF_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port, RM_BLINKER_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port, RR_BLINKER_Pin, GPIO_PIN_RESET);
 				flag = 0;
 			}
 		} else if (tempRBlinkerStr[0] == '0'){
 			HAL_GPIO_WritePin(RF_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port, RF_BLINKER_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(RM_BLINKER_GPIO_Port, RM_BLINKER_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(RR_BLINKER_GPIO_Port, RR_BLINKER_Pin, GPIO_PIN_RESET);
 			flag = 0;
 			osThreadSetPriority(myTaskBlinkerRHandle, osPriorityNormal);
 		}
@@ -1348,6 +1305,7 @@ void StartTaskInterior(void const * argument)
 	static int R;
 	static int G;
 	static int B;
+	uint8_t onoff;
 	static int incDecR = 1;
 	static int incDecG = 1;
 	static int incDecB = 1;
@@ -1356,36 +1314,42 @@ void StartTaskInterior(void const * argument)
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
 	xSemaphoreGive(myMutex02Handle);
-	R = tempStr[0];
-	G = tempStr[1];
-	B = tempStr[2];
+	
+	onoff = tempStr[0];
+	R = tempStr[1];
+	G = tempStr[2];
+	B = tempStr[3];
   /* Infinite loop */
  for(;;)
   {
-		setPWM(htim3, TIM_CHANNEL_4, 255, R);
-		setPWM(htim12, TIM_CHANNEL_2, 255, G);
-		setPWM(htim9, TIM_CHANNEL_2, 255, B);
+		if (onoff == '1'){
+			setPWM(htim3, TIM_CHANNEL_4, 255, R);
+			setPWM(htim12, TIM_CHANNEL_2, 255, G);
+			setPWM(htim9, TIM_CHANNEL_2, 255, B);
+			
+			R+=incDecR;
+			G+=incDecG;
+			B+=incDecB;
+			
+			if(R==256){
+				incDecR = -1;
+			}else if(R==0){
+				incDecR = 1;
+			}
 		
-		R+=incDecR;
-		G+=incDecG;
-		B+=incDecB;
+			if(G==256){
+				incDecG = -1;
+			}else if(G==0){
+				incDecG = 1;
+			}
 		
-		if(R==256){
-			incDecR = -1;
-		}else if(R==0){
-			incDecR = 1;
-		}
-		
-		if(G==256){
-			incDecG = -1;
-		}else if(G==0){
-			incDecG = 1;
-		}
-		
-		if(B==256){
-			incDecB = -1;
-		}else if(B==0){
-			incDecB = 1;
+			if(B==256){
+				incDecB = -1;
+			}else if(B==0){
+				incDecB = 1;
+			}
+		} else if (onoff == '0'){
+			osThreadSetPriority(myTaskInteriorHandle, osPriorityNormal);
 		}
     osDelay(10);
  }
@@ -1431,9 +1395,8 @@ void StartTaskProximity(void const * argument)
 void StartTaskWiper(void const * argument)
 {
   /* USER CODE BEGIN StartTaskWiper */
-	int16_t i;
 	uint8_t *tempStr, freq, onoff;
-	uint16_t period;
+	uint16_t period = 1000;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1442,54 +1405,62 @@ void StartTaskWiper(void const * argument)
 	freq = tempStr[1];
 	
 	// period is time in which all 4 leds turn on and all 4 turn off
-	// period = scalePeriod();
+	// period = scalePeriod(freq);
   /* Infinite loop */
   for(;;)
-  {   		
-		switch (wiperFlag){
-			case 0:
-				HAL_GPIO_WritePin(WIPER_3_GPIO_Port, WIPER_3_Pin, GPIO_PIN_SET);
-				wiperFlag++;
-				osDelay(period/8);
-				break;
-			case 1:
-				HAL_GPIO_WritePin(WIPER_2_GPIO_Port, WIPER_2_Pin, GPIO_PIN_SET);
-				wiperFlag++;
-				osDelay(period/8);
-				break;
-			case 2:
-				HAL_GPIO_WritePin(WIPER_1_GPIO_Port, WIPER_1_Pin, GPIO_PIN_SET);
-				wiperFlag++;
-				osDelay(period/8);
-				break;
-			case 3:
-				HAL_GPIO_WritePin(WIPER_0_GPIO_Port, WIPER_0_Pin, GPIO_PIN_SET);
-				wiperFlag++;
-				osDelay(period/8);
-				break;
-			case 4:
-				HAL_GPIO_WritePin(WIPER_0_GPIO_Port, WIPER_0_Pin, GPIO_PIN_RESET);
-				wiperFlag++;
-				osDelay(period/8);
-				break;
-			case 5:
-				HAL_GPIO_WritePin(WIPER_1_GPIO_Port, WIPER_1_Pin, GPIO_PIN_RESET);
-				wiperFlag++;
-				osDelay(period/8);
-				break;
-			case 6:
-				HAL_GPIO_WritePin(WIPER_2_GPIO_Port, WIPER_2_Pin, GPIO_PIN_RESET);
-				wiperFlag++;
-				osDelay(period/8);
-				break;
-			case 7:
-				HAL_GPIO_WritePin(WIPER_3_GPIO_Port, WIPER_3_Pin, GPIO_PIN_RESET);
-				wiperFlag++;
-				osDelay(period/8);
-				break;
-			default:
-				wiperFlag = 0;
-				osDelay(period/2);
+  {
+		if (onoff){
+			switch (wiperFlag){
+				case 0:
+					HAL_GPIO_WritePin(WIPER_3_GPIO_Port, WIPER_3_Pin, GPIO_PIN_SET);
+					wiperFlag++;
+					osDelay(period/8);
+					break;
+				case 1:
+					HAL_GPIO_WritePin(WIPER_2_GPIO_Port, WIPER_2_Pin, GPIO_PIN_SET);
+					wiperFlag++;
+					osDelay(period/8);
+					break;
+				case 2:
+					HAL_GPIO_WritePin(WIPER_1_GPIO_Port, WIPER_1_Pin, GPIO_PIN_SET);
+					wiperFlag++;
+					osDelay(period/8);
+					break;
+				case 3:
+					HAL_GPIO_WritePin(WIPER_0_GPIO_Port, WIPER_0_Pin, GPIO_PIN_SET);
+					wiperFlag++;
+					osDelay(period/8);
+					break;
+				case 4:
+					HAL_GPIO_WritePin(WIPER_0_GPIO_Port, WIPER_0_Pin, GPIO_PIN_RESET);
+					wiperFlag++;
+					osDelay(period/8);
+					break;
+				case 5:
+					HAL_GPIO_WritePin(WIPER_1_GPIO_Port, WIPER_1_Pin, GPIO_PIN_RESET);
+					wiperFlag++;
+					osDelay(period/8);
+					break;
+				case 6:
+					HAL_GPIO_WritePin(WIPER_2_GPIO_Port, WIPER_2_Pin, GPIO_PIN_RESET);
+					wiperFlag++;
+					osDelay(period/8);
+					break;
+				case 7:
+					HAL_GPIO_WritePin(WIPER_3_GPIO_Port, WIPER_3_Pin, GPIO_PIN_RESET);
+					wiperFlag++;
+					osDelay(period/8);
+					break;
+				default:
+					wiperFlag = 0;
+					osDelay(period/2);
+			} 
+		} else {
+			HAL_GPIO_WritePin(WIPER_3_GPIO_Port, WIPER_3_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(WIPER_2_GPIO_Port, WIPER_2_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(WIPER_1_GPIO_Port, WIPER_1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(WIPER_0_GPIO_Port, WIPER_0_Pin, GPIO_PIN_RESET);
+			osDelay(period/2);
 		}
     //osDelay(100);
   }
@@ -1511,19 +1482,19 @@ void StartTaskBlinkersLeft(void const * argument)
 		if (tempLBlinkerStr[0] == '1'){
 			if (!flag) {
 				HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LM_BLINKER_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LR_BLINKER_Pin, GPIO_PIN_SET);
 				flag = 1;
 			} else {
 				HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LM_BLINKER_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LR_BLINKER_Pin, GPIO_PIN_RESET);
 				flag = 0;
 			}
 		} else if (tempLBlinkerStr[0] == '0'){
 			HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LM_BLINKER_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LR_BLINKER_Pin, GPIO_PIN_RESET);
 			flag = 0;
 			osThreadSetPriority(myTaskBlinkerLHandle, osPriorityNormal);
 		}
@@ -1560,7 +1531,7 @@ void StartTaskLightsHigh(void const * argument)
 			printf("Sent wrong data byte!\n");
 		}
 		osThreadSetPriority(myTaskLightHighHandle, osPriorityNormal);
-    osDelay(50);
+    osDelay(100);
   }
   /* USER CODE END StartTaskLightsHigh */
 }
@@ -1583,7 +1554,7 @@ void StartTaskClosedRF(void const * argument)
 			HAL_GPIO_WritePin(RF_DOOR_CLOSED_GPIO_Port, RF_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
 		}
 		osThreadSetPriority(myTaskClosedRFHandle, osPriorityNormal);
-    osDelay(50);
+    osDelay(100);
   }
   /* USER CODE END StartTaskClosedRF */
 }
@@ -1606,7 +1577,7 @@ void StartTaskClosedRR(void const * argument)
 			HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
 		}
 		osThreadSetPriority(myTaskClosedRRHandle, osPriorityNormal);
-    osDelay(50);
+    osDelay(100);
   }
   /* USER CODE END StartTaskClosedRR */
 }
@@ -1629,7 +1600,7 @@ void StartTaskClosedLF(void const * argument)
 			HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port, LF_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
 		}
 		osThreadSetPriority(myTaskClosedLFHandle, osPriorityNormal);
-    osDelay(50);
+    osDelay(100);
   }
   /* USER CODE END StartTaskClosedLF */
 }
@@ -1652,7 +1623,7 @@ void StartTaskClosedLR(void const * argument)
 			HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
 		}
 		osThreadSetPriority(myTaskClosedLRHandle, osPriorityNormal);
-    osDelay(50);
+    osDelay(100);
   }
   /* USER CODE END StartTaskClosedLR */
 }
@@ -1675,7 +1646,7 @@ void StartTaskLockedRF(void const * argument)
 			HAL_GPIO_WritePin(RF_DOOR_LOCKED_GPIO_Port, RF_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
 		}
 		osThreadSetPriority(myTaskLockedRFHandle, osPriorityNormal);
-    osDelay(50);
+    osDelay(100);
   }
   /* USER CODE END StartTaskLockedRF */
 }
@@ -1698,7 +1669,7 @@ void StartTaskLockedRR(void const * argument)
 			HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port, RR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
 		}
 		osThreadSetPriority(myTaskLockedRRHandle, osPriorityNormal);
-    osDelay(50);
+    osDelay(100);
   }
   /* USER CODE END StartTaskLockedRR */
 }
@@ -1721,7 +1692,7 @@ void StartTaskLockedLF(void const * argument)
 			HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
 		}
 		osThreadSetPriority(myTaskLockedLFHandle, osPriorityNormal);
-    osDelay(50);
+    osDelay(100);
   }
   /* USER CODE END StartTaskLockedLF */
 }
@@ -1744,7 +1715,7 @@ void StartTaskLockedLR(void const * argument)
 			HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
 		}
 		osThreadSetPriority(myTaskLockedLRHandle, osPriorityNormal);
-    osDelay(50);
+    osDelay(100);
   }
   /* USER CODE END StartTaskLockedLR */
 }
@@ -1759,58 +1730,56 @@ void StartTaskLockedLR(void const * argument)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-/* USER CODE BEGIN Callback 0 */
+  /* USER CODE BEGIN Callback 0 */
 
-/* USER CODE END Callback 0 */
+  /* USER CODE END Callback 0 */
   if (htim->Instance == TIM6) {
     HAL_IncTick();
   }
-/* USER CODE BEGIN Callback 1 */
+  /* USER CODE BEGIN Callback 1 */
 
-/* USER CODE END Callback 1 */
+  /* USER CODE END Callback 1 */
 }
 
 /**
   * @brief  This function is executed in case of error occurrence.
-  * @param  None
+  * @param  file: The file name as string.
+  * @param  line: The line in file as a number.
   * @retval None
   */
-void _Error_Handler(char * file, int line)
+void _Error_Handler(char *file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   while(1) 
   {
   }
-  /* USER CODE END Error_Handler_Debug */ 
+  /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
-
+#ifdef  USE_FULL_ASSERT
 /**
-   * @brief Reports the name of the source file and the source line number
-   * where the assert_param error has occurred.
-   * @param file: pointer to the source file name
-   * @param line: assert_param error line source number
-   * @retval None
-   */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t* file, uint32_t line)
-{
+{ 
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
-
 }
-
-#endif
-
-/**
-  * @}
-  */ 
+#endif /* USE_FULL_ASSERT */
 
 /**
   * @}
-*/ 
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
