@@ -3,9 +3,9 @@
 <title>Static Call Graph - [CarModelBoard\CarModelBoard.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image CarModelBoard\CarModelBoard.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060061: Last Updated: Thu Feb 22 11:44:17 2018
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060061: Last Updated: Thu Feb 22 15:23:31 2018
 <BR><P>
-<H3>Maximum Stack Usage =        724 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =        732 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
 main &rArr; SystemClock_Config &rArr; HAL_RCC_ClockConfig &rArr; HAL_InitTick &rArr; HAL_TIM_Base_Init &rArr; TIM_Base_SetConfig
 <P>
@@ -1213,8 +1213,8 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.constdata)
 </UL>
-<P><STRONG><a name="[82]"></a>StartTaskProximity</STRONG> (Thumb, 202 bytes, Stack size 16 bytes, main.o(i.StartTaskProximity))
-<BR><BR>[Stack]<UL><LI>Max Depth = 152<LI>Call Chain = StartTaskProximity &rArr; HAL_I2C_Mem_Read &rArr; I2C_RequestMemoryRead &rArr; I2C_WaitOnTXISFlagUntilTimeout &rArr; I2C_IsAcknowledgeFailed
+<P><STRONG><a name="[82]"></a>StartTaskProximity</STRONG> (Thumb, 224 bytes, Stack size 24 bytes, main.o(i.StartTaskProximity))
+<BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = StartTaskProximity &rArr; HAL_I2C_Mem_Read &rArr; I2C_RequestMemoryRead &rArr; I2C_WaitOnTXISFlagUntilTimeout &rArr; I2C_IsAcknowledgeFailed
 </UL>
 <BR>[Calls]<UL><LI><a href="#[dc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
 <LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
@@ -1383,8 +1383,8 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> printf1.o(i.__0printf$1)
 </UL>
-<P><STRONG><a name="[76]"></a>main</STRONG> (Thumb, 614 bytes, Stack size 392 bytes, main.o(i.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 724<LI>Call Chain = main &rArr; SystemClock_Config &rArr; HAL_RCC_ClockConfig &rArr; HAL_InitTick &rArr; HAL_TIM_Base_Init &rArr; TIM_Base_SetConfig
+<P><STRONG><a name="[76]"></a>main</STRONG> (Thumb, 730 bytes, Stack size 400 bytes, main.o(i.main))
+<BR><BR>[Stack]<UL><LI>Max Depth = 732<LI>Call Chain = main &rArr; SystemClock_Config &rArr; HAL_RCC_ClockConfig &rArr; HAL_InitTick &rArr; HAL_TIM_Base_Init &rArr; TIM_Base_SetConfig
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_Base_Init
 <LI><a href="#[a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Init
