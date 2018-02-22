@@ -74,6 +74,9 @@
 #define LF_DOOR_SUB_ID					0x03
 #define LR_DOOR_SUB_ID					0x04
 
+#define KEY_MASK								0x01
+#define I2C_ADDRESS							0x1C
+
 
 /* USER CODE END Includes */
 
@@ -92,15 +95,10 @@ UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart3;
 
 osThreadId defaultTaskHandle;
-osThreadId myTaskCanHandle;
-osThreadId myTaskLinHandle;
 osThreadId myTaskLightLowHandle;
 osThreadId myTaskBlinkerRHandle;
 osThreadId myTaskStopLightHandle;
-osThreadId myTaskTouchKeysHandle;
-osThreadId myTaskI2CHandle;
 osThreadId myTaskInteriorHandle;
-osThreadId myTaskBuzzerHandle;
 osThreadId myTaskProximityHandle;
 osThreadId myTaskWiperHandle;
 osThreadId myTaskBlinkerLHandle;
@@ -131,6 +129,9 @@ uint8_t *dataField;
 static uint8_t flag = 0;
 static uint8_t wiperFlag = 0;
 
+uint8_t data[2];
+uint8_t analogData[24];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -146,15 +147,10 @@ static void MX_TIM13_Init(void);
 static void MX_TIM14_Init(void);
 static void MX_TIM11_Init(void);
 void StartDefaultTask(void const * argument);
-void StartTaskCan(void const * argument);
-void StartTaskLin(void const * argument);
 void StartTaskLightsLow(void const * argument);
 void StartTaskBlinkersRight(void const * argument);
 void StartTaskStopLights(void const * argument);
-void StartTaskTouchKeys(void const * argument);
-void StartTaskI2C(void const * argument);
 void StartTaskInterior(void const * argument);
-void StartTaskBuzzer(void const * argument);
 void StartTaskProximity(void const * argument);
 void StartTaskWiper(void const * argument);
 void StartTaskBlinkersLeft(void const * argument);
@@ -192,6 +188,7 @@ uint8_t Test2[5];
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	uint8_t testData[1] = {0x05};
 
   /* USER CODE END 1 */
 
@@ -224,8 +221,8 @@ int main(void)
   MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
 
-	
-		HAL_UART_Receive_IT(&huart4,Test2,1);
+	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 0x06, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
+	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 0x07, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
 	
   /* USER CODE END 2 */
 
@@ -283,14 +280,6 @@ int main(void)
   osThreadDef(defaultTask, StartDefaultTask, osPriorityAboveNormal, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-  /* definition and creation of myTaskCan */
-  osThreadDef(myTaskCan, StartTaskCan, osPriorityNormal, 0, 128);
-  myTaskCanHandle = osThreadCreate(osThread(myTaskCan), NULL);
-
-  /* definition and creation of myTaskLin */
-  osThreadDef(myTaskLin, StartTaskLin, osPriorityNormal, 0, 128);
-  myTaskLinHandle = osThreadCreate(osThread(myTaskLin), NULL);
-
   /* definition and creation of myTaskLightLow */
   osThreadDef(myTaskLightLow, StartTaskLightsLow, osPriorityNormal, 0, 128);
   myTaskLightLowHandle = osThreadCreate(osThread(myTaskLightLow), NULL);
@@ -303,24 +292,12 @@ int main(void)
   osThreadDef(myTaskStopLight, StartTaskStopLights, osPriorityNormal, 0, 128);
   myTaskStopLightHandle = osThreadCreate(osThread(myTaskStopLight), NULL);
 
-  /* definition and creation of myTaskTouchKeys */
-  osThreadDef(myTaskTouchKeys, StartTaskTouchKeys, osPriorityNormal, 0, 128);
-  myTaskTouchKeysHandle = osThreadCreate(osThread(myTaskTouchKeys), NULL);
-
-  /* definition and creation of myTaskI2C */
-  osThreadDef(myTaskI2C, StartTaskI2C, osPriorityNormal, 0, 128);
-  myTaskI2CHandle = osThreadCreate(osThread(myTaskI2C), NULL);
-
   /* definition and creation of myTaskInterior */
   osThreadDef(myTaskInterior, StartTaskInterior, osPriorityNormal, 0, 128);
   myTaskInteriorHandle = osThreadCreate(osThread(myTaskInterior), NULL);
 
-  /* definition and creation of myTaskBuzzer */
-  osThreadDef(myTaskBuzzer, StartTaskBuzzer, osPriorityNormal, 0, 128);
-  myTaskBuzzerHandle = osThreadCreate(osThread(myTaskBuzzer), NULL);
-
   /* definition and creation of myTaskProximity */
-  osThreadDef(myTaskProximity, StartTaskProximity, osPriorityNormal, 0, 128);
+  osThreadDef(myTaskProximity, StartTaskProximity, osPriorityAboveNormal, 0, 128);
   myTaskProximityHandle = osThreadCreate(osThread(myTaskProximity), NULL);
 
   /* definition and creation of myTaskWiper */
@@ -997,40 +974,6 @@ uint16_t pulse)
  HAL_TIM_PWM_Start(&timer, channel); // start pwm generation
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	
-	if (Test2[0]=='1')
-	{
-		 HAL_GPIO_TogglePin(LD3_GPIO_Port,LD3_Pin);
-	}
- Test2[0] = ' ';
-	
-//while(	huart4.gState !=  HAL_UART_STATE_READY)
-//	{}
-	HAL_UART_Receive_IT(&huart4,Test2,1);
-	
-} 
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	static unsigned long last_interrupt_time;
-	unsigned long interrupt_time=HAL_GetTick();
-	if ((interrupt_time-last_interrupt_time)>250)
-	{
-	if (GPIO_Pin==USER_Btn_Pin)
-	{
-		button++;
-			if (button==5)
-		{
-			button=0;
-		}
-	
-	}
-}
-	last_interrupt_time=HAL_GetTick();
-}
-
 /* USER CODE END 4 */
 
 /* StartDefaultTask function */
@@ -1139,44 +1082,6 @@ void StartDefaultTask(void const * argument)
   /* USER CODE END 5 */ 
 }
 
-/* StartTaskCan function */
-void StartTaskCan(void const * argument)
-{
-  /* USER CODE BEGIN StartTaskCan */
-  /* Infinite loop */
-  for(;;)
-  {
-		xSemaphoreTake(myMutex01Handle, portMAX_DELAY);		
-		HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
-		xSemaphoreGive(myMutex01Handle);
-    osDelay(1000);
-  }
-  /* USER CODE END StartTaskCan */
-}
-
-/* StartTaskLin function */
-void StartTaskLin(void const * argument)
-{
-  /* USER CODE BEGIN StartTaskLin */
-  /* Infinite loop */
-  for(;;)
-  {
-		char *message;
-		message = createPackage(0x25, 0x21, 0x23, " woow, yay");		
-		HAL_UART_Transmit(&huart3,(uint8_t*)message,stringLength(*message),10);
-		
-		
-//		uint8_t Test[5] = "11111"; //Data to send 
-//		HAL_UART_Transmit_IT(&huart4,Test,5);// Sending in normal mode
-//		uint8_t Test3[5] = "11111";
-//		HAL_UART_Transmit(&huart3,Test3,5,10);// Sending in normal mode
-		
-		osDelay(100);
-		
-  }
-  /* USER CODE END StartTaskLin */
-}
-
 /* StartTaskLightsLow function */
 void StartTaskLightsLow(void const * argument)
 {
@@ -1274,30 +1179,6 @@ void StartTaskStopLights(void const * argument)
   /* USER CODE END StartTaskStopLights */
 }
 
-/* StartTaskTouchKeys function */
-void StartTaskTouchKeys(void const * argument)
-{
-  /* USER CODE BEGIN StartTaskTouchKeys */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(100);
-  }
-  /* USER CODE END StartTaskTouchKeys */
-}
-
-/* StartTaskI2C function */
-void StartTaskI2C(void const * argument)
-{
-  /* USER CODE BEGIN StartTaskI2C */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(100);
-  }
-  /* USER CODE END StartTaskI2C */
-}
-
 /* StartTaskInterior function */
 void StartTaskInterior(void const * argument)
 {
@@ -1358,35 +1239,51 @@ void StartTaskInterior(void const * argument)
   /* USER CODE END StartTaskInterior */
 }
 
-/* StartTaskBuzzer function */
-void StartTaskBuzzer(void const * argument)
-{
-  /* USER CODE BEGIN StartTaskBuzzer */
-  /* Infinite loop */
-  for(;;)
-  {
-		
-			if (button==0)
-			{
-				setPWM(htim11, TIM_CHANNEL_1, 255, 0);
-			}
-			if (button==4)
-			{
-				setPWM(htim11, TIM_CHANNEL_1, 255, 255);
-			}
-    osDelay(100);
-  }
-  /* USER CODE END StartTaskBuzzer */
-}
-
 /* StartTaskProximity function */
 void StartTaskProximity(void const * argument)
 {
   /* USER CODE BEGIN StartTaskProximity */
+	//uint8_t testData[1] = {0x05};
+	//uint8_t check[1];
+	
+	//HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 0x06, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
+	//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 0x02, I2C_MEMADD_SIZE_8BIT, check, 1, 100 );
+	
+	//while(check[0] & (KEY_MASK << 7));
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(100);
+		if(HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 0x03, I2C_MEMADD_SIZE_8BIT, data, 2, 100) == HAL_OK){
+		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 0x03, I2C_MEMADD_SIZE_8BIT, data, 2, 100);
+			if(data[0] & KEY_MASK)
+				HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
+			else 
+				HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
+			if(data[0] & (KEY_MASK << 4))
+				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
+			else
+				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
+			if(data[0] & (KEY_MASK << 5))
+				HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port, LF_DOOR_CLOSED_Pin, GPIO_PIN_SET);
+			else
+				HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port, LF_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
+			if(data[1] & (KEY_MASK << 1))
+				HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port, RR_DOOR_LOCKED_Pin, GPIO_PIN_SET);
+			else
+				HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port, RR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
+			if(data[1] & (KEY_MASK << 2))
+				HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_SET);
+			else
+				HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
+			if(data[1] & (KEY_MASK << 3))
+				HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_SET);
+			else 
+				HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
+		}
+		HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 52, I2C_MEMADD_SIZE_8BIT, analogData, 24, 100);
+		
+    osDelay(1000);
   }
   /* USER CODE END StartTaskProximity */
 }
