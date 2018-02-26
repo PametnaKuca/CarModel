@@ -111,6 +111,7 @@ osThreadId myTaskLockedRFHandle;
 osThreadId myTaskLockedRRHandle;
 osThreadId myTaskLockedLFHandle;
 osThreadId myTaskLockedLRHandle;
+osThreadId myTaskKeysHandle;
 osMutexId myMutex01Handle;
 osMutexId myMutex02Handle;
 osMutexId myMutex03Handle;
@@ -129,7 +130,6 @@ uint8_t *dataField;
 static uint8_t flag = 0;
 static uint8_t wiperFlag = 0;
 
-uint8_t data[2];
 uint8_t analogData[24];
 
 /* USER CODE END PV */
@@ -163,6 +163,7 @@ void StartTaskLockedRF(void const * argument);
 void StartTaskLockedRR(void const * argument);
 void StartTaskLockedLF(void const * argument);
 void StartTaskLockedLR(void const * argument);
+void StartTaskKeys(void const * argument);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
@@ -188,9 +189,8 @@ uint8_t Test2[5];
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t testData[1] = {25};
-	uint8_t pulseScale[1] = {0x21};
-	uint8_t removeAutoCalibrate[1] = {0};
+	//uint8_t testData[1] = {5};
+	uint8_t pulseScale[1] = {0x84};
 
   /* USER CODE END 1 */
 
@@ -223,10 +223,9 @@ int main(void)
   MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
 
-	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 6, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
-	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 8, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
+	//HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 6, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
+	//HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 8, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
 	//HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 11, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
-	//HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 12, I2C_MEMADD_SIZE_8BIT, removeAutoCalibrate, 1, 100);
 	
 	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 40, I2C_MEMADD_SIZE_8BIT, pulseScale, 1, 100);
 	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 44, I2C_MEMADD_SIZE_8BIT, pulseScale, 1, 100);
@@ -354,6 +353,10 @@ int main(void)
   /* definition and creation of myTaskLockedLR */
   osThreadDef(myTaskLockedLR, StartTaskLockedLR, osPriorityNormal, 0, 128);
   myTaskLockedLRHandle = osThreadCreate(osThread(myTaskLockedLR), NULL);
+
+  /* definition and creation of myTaskKeys */
+  osThreadDef(myTaskKeys, StartTaskKeys, osPriorityAboveNormal, 0, 128);
+  myTaskKeysHandle = osThreadCreate(osThread(myTaskKeys), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1254,16 +1257,8 @@ void StartTaskInterior(void const * argument)
 void StartTaskProximity(void const * argument)
 {
   /* USER CODE BEGIN StartTaskProximity */
-	//uint8_t testData[1] = {0x05};
-	//uint8_t check[1];
-	uint8_t tresholds[12];
+	uint8_t data[2];
 	
-	//HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 0x06, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
-	//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 0x02, I2C_MEMADD_SIZE_8BIT, check, 1, 100 );
-	
-	//while(check[0] & (KEY_MASK << 7));
-
-	HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 16, I2C_MEMADD_SIZE_8BIT, tresholds, 12, 100);
   /* Infinite loop */
   for(;;)
   {
@@ -1294,9 +1289,9 @@ void StartTaskProximity(void const * argument)
 			else 
 				HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
 		}
-		HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 52, I2C_MEMADD_SIZE_8BIT, analogData, 24, 100);
+		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 52, I2C_MEMADD_SIZE_8BIT, analogData, 24, 100);
 		
-    osDelay(1000);
+    osDelay(50);
   }
   /* USER CODE END StartTaskProximity */
 }
@@ -1628,6 +1623,48 @@ void StartTaskLockedLR(void const * argument)
     osDelay(100);
   }
   /* USER CODE END StartTaskLockedLR */
+}
+
+/* StartTaskKeys function */
+void StartTaskKeys(void const * argument)
+{
+  /* USER CODE BEGIN StartTaskKeys */
+	uint8_t data[2];
+	
+  /* Infinite loop */
+  for(;;)
+  {
+		if(HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 3, I2C_MEMADD_SIZE_8BIT, data, 2, 100) == HAL_OK){
+			if((data[0] & (KEY_MASK << 1)) != 0)
+				HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_SET);
+			else 
+				HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
+			if((data[0] & (KEY_MASK << 2)) != 0)
+				HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LM_BLINKER_Pin, GPIO_PIN_SET);
+			else 
+				HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LM_BLINKER_Pin, GPIO_PIN_RESET);
+			if((data[0] & (KEY_MASK << 3)) != 0)
+				HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LR_BLINKER_Pin, GPIO_PIN_SET);
+			else 
+				HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LR_BLINKER_Pin, GPIO_PIN_RESET);
+			if((data[0] & (KEY_MASK << 6)) != 0)
+				HAL_GPIO_WritePin(L_HIGH_BEAM_GPIO_Port, L_HIGH_BEAM_Pin, GPIO_PIN_SET);
+			else 
+				HAL_GPIO_WritePin(L_HIGH_BEAM_GPIO_Port, L_HIGH_BEAM_Pin, GPIO_PIN_RESET);
+			if((data[0] & (KEY_MASK << 7)) != 0)
+				HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port, R_HIGH_BEAM_Pin, GPIO_PIN_SET);
+			else 
+				HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port, R_HIGH_BEAM_Pin, GPIO_PIN_RESET);
+			if((data[1] & (KEY_MASK)) != 0)
+				HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port, R_HIGH_BEAM_Pin, GPIO_PIN_SET);
+			else 
+				HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port, R_HIGH_BEAM_Pin, GPIO_PIN_RESET);
+			
+		
+		}
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskKeys */
 }
 
 /**
