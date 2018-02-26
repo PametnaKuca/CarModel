@@ -189,8 +189,8 @@ uint8_t Test2[5];
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	//uint8_t testData[1] = {5};
-	uint8_t pulseScale[1] = {0x84};
+	uint8_t testData[1] = {5};
+	uint8_t pulseScale[1] = {0x63};
 
   /* USER CODE END 1 */
 
@@ -223,9 +223,8 @@ int main(void)
   MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
 
-	//HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 6, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
-	//HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 8, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
-	//HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 11, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
+	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 6, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
+	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 8, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
 	
 	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 40, I2C_MEMADD_SIZE_8BIT, pulseScale, 1, 100);
 	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 44, I2C_MEMADD_SIZE_8BIT, pulseScale, 1, 100);
