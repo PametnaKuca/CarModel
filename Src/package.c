@@ -67,30 +67,30 @@ int getSize(char *str){
 	return (short)atoi(size);
 }
 
-char *getID(char *str){
-	static char ID[2] = "";
+char getID(char *str){
+	char ID;
 	int i;
 	for(i = 0; i < SIZE_STR_LEN; i++)
 		str++;
-	ID[0] = *str;
+	ID = *str;
 	return ID;
 }
 
-char *getSubID(char *str){
-	static char subID[2] = "";
+char getSubID(char *str){
+	char subID;
 	int i;
 	for(i = 0; i < (SIZE_STR_LEN + ID_STR_LEN); i++)
 		str++;
-	subID[0] = *str;
+	subID = *str;
 	return subID;
 }
 
-char *getConf(char *str){
-	static char conf[2] = "";
+char getConf(char *str){
+	char conf;
 	int i;
 	for(i = 0; i < (SIZE_STR_LEN + ID_STR_LEN + SUB_ID_STR_LEN); i++)
 		str++;
-	conf[0] = *str;
+	conf = *str;
 	return conf;
 }
 

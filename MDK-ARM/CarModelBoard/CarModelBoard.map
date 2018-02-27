@@ -1089,12 +1089,9 @@ Section Cross References
     package.o(i.createPackage) refers to strcat.o(.text) for strcat
     package.o(i.createPackage) refers to package.o(i.stringXOR) for stringXOR
     package.o(i.createPackage) refers to package.o(.bss) for .bss
-    package.o(i.getConf) refers to package.o(.data) for .data
     package.o(i.getData) refers to malloc.o(i.malloc) for malloc
     package.o(i.getData) refers to strcat.o(.text) for strcat
-    package.o(i.getID) refers to package.o(.data) for .data
     package.o(i.getSize) refers to atoi.o(.text) for atoi
-    package.o(i.getSubID) refers to package.o(.data) for .data
     package.o(i.stringXOR) refers to package.o(.data) for .data
     system_stm32f7xx.o(i.SystemCoreClockUpdate) refers to system_stm32f7xx.o(.data) for .data
     system_stm32f7xx.o(i.SystemCoreClockUpdate) refers to system_stm32f7xx.o(.constdata) for .constdata
@@ -1943,15 +1940,15 @@ Removing Unused input sections from the image.
     Removing main.o(.data), (1 bytes).
     Removing main.o(.data), (5 bytes).
     Removing package.o(i.createPackage), (92 bytes).
-    Removing package.o(i.getConf), (24 bytes).
+    Removing package.o(i.getConf), (14 bytes).
     Removing package.o(i.getData), (72 bytes).
-    Removing package.o(i.getID), (24 bytes).
+    Removing package.o(i.getID), (14 bytes).
     Removing package.o(i.getSize), (30 bytes).
-    Removing package.o(i.getSubID), (24 bytes).
+    Removing package.o(i.getSubID), (14 bytes).
     Removing package.o(i.stringLength), (20 bytes).
     Removing package.o(i.stringXOR), (36 bytes).
     Removing package.o(.bss), (1000 bytes).
-    Removing package.o(.data), (8 bytes).
+    Removing package.o(.data), (2 bytes).
     Removing system_stm32f7xx.o(.rev16_text), (4 bytes).
     Removing system_stm32f7xx.o(.revsh_text), (4 bytes).
     Removing system_stm32f7xx.o(.rrx_text), (6 bytes).
@@ -1963,7 +1960,7 @@ Removing Unused input sections from the image.
     Removing cdrcmple.o(.text), (48 bytes).
     Removing depilogue.o(.text), (186 bytes).
 
-538 unused section(s) (total 38646 bytes) removed from the image.
+538 unused section(s) (total 38610 bytes) removed from the image.
 
 ==============================================================================
 

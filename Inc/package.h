@@ -50,19 +50,19 @@ int getSize(char *str);
  *  @param str -> string to parse
  *  return -> 4th byte (ID)
  */
-char* getID(char *str);
+char getID(char *str);
 
 /*  Function parses out subID (5th byte) from the input string 
  *  @param str -> string to parse
  *  return -> 5th byte (subID)
  */
-char* getSubID(char *str);
+char getSubID(char *str);
 
 /*  Function parses out configuration (6th byte) from the input string 
  *  @param str -> string to parse
  *  return -> 6th byte (configuration)
  */
-char* getConf(char *str);
+char getConf(char *str);
 
 /*	Function parses message(sensor data) of the received string.  
  *	@param str -> input string
