@@ -996,6 +996,7 @@ void StartDefaultTask(void const * argument)
   /* USER CODE BEGIN 5 */
 	char *message, *str;
 	char ID, subID;
+	int size;
 	
 	ID = 0x01;
 	subID = 0x01;
@@ -1009,85 +1010,90 @@ void StartDefaultTask(void const * argument)
 		//if(HAL_UART_Receive(&huart3, (uint8_t *) message, 100, 10) == HAL_OK)
 		//{
 			xSemaphoreGive(myMutex01Handle);
-			// str = stringSplit(message);
+			// size = getSize(message);
 			xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 			 
-			// subID = str[1];
-			// dataField = str[2];
-			xSemaphoreGive(myMutex02Handle);
-			switch(ID)
+			if(checkIfValid(message, size))
 			{
-				case BLINKER_ID:
-					if(subID == R_BLINKER_SUB_ID){
-						osThreadSetPriority(myTaskBlinkerRHandle, osPriorityAboveNormal);
-					} else if(subID == L_BLINKER_SUB_ID){
-						osThreadSetPriority(myTaskBlinkerLHandle, osPriorityAboveNormal);
-					}
-					break;
-				case LIGHTS_ID:
-					if(subID == LOW_BEAM_SUB_ID){
-						osThreadSetPriority(myTaskLightLowHandle, osPriorityAboveNormal);
-					} else if(subID == HIGH_BEAM_SUB_ID){
-						osThreadSetPriority(myTaskLightHighHandle, osPriorityAboveNormal);
-					}
-					break;
-				case STOP_LIGHT_ID:
-					if(subID == STOP_LIGHT_SUB_ID){
-						osThreadSetPriority(myTaskStopLightHandle, osPriorityAboveNormal);
-					}
-					break;
-				case INTERIOR_LIGHT_ID:
-					if(subID == INTERIOR_LIGHT_SUB_ID){
-						osThreadSetPriority(myTaskInteriorHandle, osPriorityAboveNormal);
-					}
-					break;
-				case WIPER_ID:
-					if(subID == WIPER_SUB_ID){
-						osThreadSetPriority(myTaskWiperHandle, osPriorityAboveNormal);
-					}
-					break;
-				case DOOR_CLOSED_ID:
-					switch(subID){
-						case RF_DOOR_SUB_ID:
-							osThreadSetPriority(myTaskClosedRFHandle, osPriorityAboveNormal);
-							break;
-						case RR_DOOR_SUB_ID:
-							osThreadSetPriority(myTaskClosedRRHandle, osPriorityAboveNormal);
-							break;
-						case LF_DOOR_SUB_ID:
-							osThreadSetPriority(myTaskClosedLFHandle, osPriorityAboveNormal);
-							break;
-						case LR_DOOR_SUB_ID:
-							osThreadSetPriority(myTaskClosedLRHandle, osPriorityAboveNormal);
-							break;
-					}
-					break;
-				case DOOR_LOCKED_ID:
-					switch(subID){
-						case RF_DOOR_SUB_ID:
-							osThreadSetPriority(myTaskLockedRFHandle, osPriorityAboveNormal);
-							break;
-						case RR_DOOR_SUB_ID:
-							osThreadSetPriority(myTaskLockedRRHandle, osPriorityAboveNormal);
-							break;
-						case LF_DOOR_SUB_ID:
-							osThreadSetPriority(myTaskLockedLFHandle, osPriorityAboveNormal);
-							break;
-						case LR_DOOR_SUB_ID:
-							osThreadSetPriority(myTaskLockedLRHandle, osPriorityAboveNormal);
-							break;
-					}
-					break;
+				xSemaphoreGive(myMutex02Handle);
+				// ID = getID(message);
+				// subID = getSubID(message);
+				// dataField = getData(message, size);
+			
+				switch(ID)
+				{
+					case BLINKER_ID:
+						if(subID == R_BLINKER_SUB_ID){
+							osThreadSetPriority(myTaskBlinkerRHandle, osPriorityAboveNormal);
+						} else if(subID == L_BLINKER_SUB_ID){
+							osThreadSetPriority(myTaskBlinkerLHandle, osPriorityAboveNormal);
+						}
+						break;
+					case LIGHTS_ID:
+						if(subID == LOW_BEAM_SUB_ID){
+							osThreadSetPriority(myTaskLightLowHandle, osPriorityAboveNormal);
+						} else if(subID == HIGH_BEAM_SUB_ID){
+							osThreadSetPriority(myTaskLightHighHandle, osPriorityAboveNormal);
+						}
+						break;
+					case STOP_LIGHT_ID:
+						if(subID == STOP_LIGHT_SUB_ID){
+							osThreadSetPriority(myTaskStopLightHandle, osPriorityAboveNormal);
+						}
+						break;
+					case INTERIOR_LIGHT_ID:
+						if(subID == INTERIOR_LIGHT_SUB_ID){
+							osThreadSetPriority(myTaskInteriorHandle, osPriorityAboveNormal);
+						}
+						break;
+					case WIPER_ID:
+						if(subID == WIPER_SUB_ID){
+							osThreadSetPriority(myTaskWiperHandle, osPriorityAboveNormal);
+						}
+						break;
+					case DOOR_CLOSED_ID:
+						switch(subID){
+							case RF_DOOR_SUB_ID:
+								osThreadSetPriority(myTaskClosedRFHandle, osPriorityAboveNormal);
+								break;
+							case RR_DOOR_SUB_ID:
+								osThreadSetPriority(myTaskClosedRRHandle, osPriorityAboveNormal);
+								break;
+							case LF_DOOR_SUB_ID:
+								osThreadSetPriority(myTaskClosedLFHandle, osPriorityAboveNormal);
+								break;
+							case LR_DOOR_SUB_ID:
+								osThreadSetPriority(myTaskClosedLRHandle, osPriorityAboveNormal);
+								break;
+						}
+						break;
+					case DOOR_LOCKED_ID:
+						switch(subID){
+							case RF_DOOR_SUB_ID:
+								osThreadSetPriority(myTaskLockedRFHandle, osPriorityAboveNormal);
+								break;
+							case RR_DOOR_SUB_ID:
+								osThreadSetPriority(myTaskLockedRRHandle, osPriorityAboveNormal);
+								break;
+							case LF_DOOR_SUB_ID:
+								osThreadSetPriority(myTaskLockedLFHandle, osPriorityAboveNormal);
+								break;
+							case LR_DOOR_SUB_ID:
+								osThreadSetPriority(myTaskLockedLRHandle, osPriorityAboveNormal);
+								break;
+						}
+						break;
+				}
+				ID++;
+				if (ID == 0x08)
+					ID = 0x01;
+				xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
+				if(dataField[1] == '1')
+					dataField[1] = '0';
+				else
+					dataField[1] = '1';
+				xSemaphoreGive(myMutex02Handle);
 			}
-			ID++;
-			if (ID == 0x08)
-				ID = 0x01;
-			xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
-			if(dataField[1] == '1')
-				dataField[1] = '0';
-			else
-				dataField[1] = '1';
-			xSemaphoreGive(myMutex02Handle);
 		//}
 		HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
 		xSemaphoreGive(myMutex01Handle);
@@ -1257,6 +1263,7 @@ void StartTaskProximity(void const * argument)
 {
   /* USER CODE BEGIN StartTaskProximity */
 	uint8_t data[2];
+	uint8_t analogData[24];
 	
   /* Infinite loop */
   for(;;)
@@ -1288,7 +1295,7 @@ void StartTaskProximity(void const * argument)
 			else 
 				HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
 		}
-		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 52, I2C_MEMADD_SIZE_8BIT, analogData, 24, 100);
+		HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 52, I2C_MEMADD_SIZE_8BIT, analogData, 24, 100);
 		
     osDelay(50);
   }
@@ -1655,13 +1662,11 @@ void StartTaskKeys(void const * argument)
 			else 
 				HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port, R_HIGH_BEAM_Pin, GPIO_PIN_RESET);
 			if((data[1] & (KEY_MASK)) != 0)
-				HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port, R_HIGH_BEAM_Pin, GPIO_PIN_SET);
+				setPWM(htim11, TIM_CHANNEL_1, 255, 255);
 			else 
-				HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port, R_HIGH_BEAM_Pin, GPIO_PIN_RESET);
-			
-		
+				setPWM(htim11, TIM_CHANNEL_1, 255, 0);
 		}
-    osDelay(1);
+    osDelay(10);
   }
   /* USER CODE END StartTaskKeys */
 }
