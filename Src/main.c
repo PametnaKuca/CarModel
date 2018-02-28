@@ -198,7 +198,7 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
+	
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -984,7 +984,7 @@ uint16_t pulse)
  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
  HAL_TIM_PWM_ConfigChannel(&timer, &sConfigOC, channel);
- HAL_TIM_PWM_Start(&timer, channel); // start pwm generation
+ HAL_TIM_PWM_Start(&timer, channel); // start pwm generation			
 }
 
 /* USER CODE END 4 */
@@ -994,7 +994,7 @@ void StartDefaultTask(void const * argument)
 {
 
   /* USER CODE BEGIN 5 */
-	char *message, *str;
+	char *message;
 	char ID, subID;
 	int size;
 	
@@ -1013,8 +1013,8 @@ void StartDefaultTask(void const * argument)
 			// size = getSize(message);
 			xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 			 
-			if(checkIfValid(message, size))
-			{
+			//if(checkIfValid(message, size))
+			//{
 				xSemaphoreGive(myMutex02Handle);
 				// ID = getID(message);
 				// subID = getSubID(message);
@@ -1093,7 +1093,7 @@ void StartDefaultTask(void const * argument)
 				else
 					dataField[1] = '1';
 				xSemaphoreGive(myMutex02Handle);
-			}
+			//}
 		//}
 		HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
 		xSemaphoreGive(myMutex01Handle);
@@ -1271,31 +1271,38 @@ void StartTaskProximity(void const * argument)
 		if(HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 3, I2C_MEMADD_SIZE_8BIT, data, 2, 100) == HAL_OK){
 		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 0x03, I2C_MEMADD_SIZE_8BIT, data, 2, 100);
 			if((data[0] & KEY_MASK) != 0)
-				HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
-			else 
-				HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
-			if((data[0] & (KEY_MASK << 4)) != 0)
 				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
-			else
+			else 
 				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
-			if((data[0] & (KEY_MASK << 5)) != 0)
+			
+			if((data[0] & (KEY_MASK << 4)) != 0)
 				HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port, LF_DOOR_CLOSED_Pin, GPIO_PIN_SET);
 			else
 				HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port, LF_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
+			
+			if((data[0] & (KEY_MASK << 5)) != 0)
+				HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_SET);
+			else
+				HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
+			
 			if((data[1] & (KEY_MASK << 1)) != 0)
 				HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port, RR_DOOR_LOCKED_Pin, GPIO_PIN_SET);
 			else
 				HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port, RR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
+			
 			if((data[1] & (KEY_MASK << 2)) != 0)
-				HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_SET);
-			else
-				HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
-			if((data[1] & (KEY_MASK << 3)) != 0)
 				HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_SET);
 			else 
 				HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
+			
+			if((data[1] & (KEY_MASK << 3)) != 0)
+				HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
+			else
+				HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
+
 		}
 		HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 52, I2C_MEMADD_SIZE_8BIT, analogData, 24, 100);
+		HAL_UART_Transmit(&huart3, analogData, sizeof(analogData), 100);
 		
     osDelay(50);
   }
