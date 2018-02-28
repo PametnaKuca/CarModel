@@ -58,21 +58,42 @@
 #define BLINKER_ID							0x01
 #define R_BLINKER_SUB_ID				0x01
 #define L_BLINKER_SUB_ID				0x02
+
 #define LIGHTS_ID								0x02
 #define LOW_BEAM_SUB_ID					0x01
 #define HIGH_BEAM_SUB_ID				0x02
+
 #define STOP_LIGHT_ID						0x03
 #define STOP_LIGHT_SUB_ID				0x01
+
 #define INTERIOR_LIGHT_ID				0x04
 #define INTERIOR_LIGHT_SUB_ID		0x01
+
 #define WIPER_ID								0x05
 #define WIPER_SUB_ID						0x01
+
 #define DOOR_CLOSED_ID					0x06
 #define DOOR_LOCKED_ID					0x07
 #define RF_DOOR_SUB_ID					0x01
 #define RR_DOOR_SUB_ID					0x02
 #define LF_DOOR_SUB_ID					0x03
 #define LR_DOOR_SUB_ID					0x04
+
+#define PROXIMITY_ID						0x08
+#define RM_PROXIMITY_SUB_ID			0x01
+#define	RF_PROXIMITY_SUB_ID			0x02
+#define LF_PROXIMITY_SUB_ID			0x03
+#define	LM_PROXIMITY_SUB_ID			0x04
+#define LR_PROXIMITY_SUB_ID			0x05
+#define	RR_PROXIMITY_SUB_ID			0x06
+
+#define BUTTON_ID								0x09
+#define RR_BUTTON_SUB_ID				0x01
+#define RM_BUTTON_SUB_ID				0x02
+#define RF_BUTTON_SUB_ID				0x03
+#define LF_BUTTON_SUB_ID				0x04
+#define LM_BUTTON_SUB_ID				0x05
+#define LR_BUTTON_SUB_ID				0x06
 
 #define KEY_MASK								0x01
 #define I2C_ADDRESS							0x1C
@@ -1264,6 +1285,8 @@ void StartTaskProximity(void const * argument)
   /* USER CODE BEGIN StartTaskProximity */
 	uint8_t data[2];
 	uint8_t analogData[24];
+	uint8_t distance;
+	char* message;
 	
   /* Infinite loop */
   for(;;)
@@ -1271,6 +1294,8 @@ void StartTaskProximity(void const * argument)
 		if(HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 3, I2C_MEMADD_SIZE_8BIT, data, 2, 100) == HAL_OK){
 		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 0x03, I2C_MEMADD_SIZE_8BIT, data, 2, 100);
 			if((data[0] & KEY_MASK) != 0)
+				//distance = calculateDistance(refData,curData);
+				//message = createPackage(PROXIMITY_ID,RM_PROXIMITY_SUB_ID,1,distance);
 				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
 			else 
 				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
