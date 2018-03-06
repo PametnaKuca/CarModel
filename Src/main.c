@@ -86,6 +86,7 @@
 #define	LM_PROXIMITY_SUB_ID			0x04
 #define LR_PROXIMITY_SUB_ID			0x05
 #define	RR_PROXIMITY_SUB_ID			0x06
+#define RECALIBRATE							0x07
 
 #define BUTTON_ID								0x09
 #define RR_BUTTON_SUB_ID				0x01
@@ -212,6 +213,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint8_t testData[1] = {5};
 	uint8_t pulseScale[1] = {0x63};
+	uint8_t threshold[1] = {5};
 
   /* USER CODE END 1 */
 
@@ -253,6 +255,13 @@ int main(void)
 	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 49, I2C_MEMADD_SIZE_8BIT, pulseScale, 1, 100);
 	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 50, I2C_MEMADD_SIZE_8BIT, pulseScale, 1, 100);
 	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 51, I2C_MEMADD_SIZE_8BIT, pulseScale, 1, 100);
+	
+	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 16, I2C_MEMADD_SIZE_8BIT, threshold, 1, 100);
+	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 20, I2C_MEMADD_SIZE_8BIT, threshold, 1, 100);
+	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 21, I2C_MEMADD_SIZE_8BIT, threshold, 1, 100);
+	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 25, I2C_MEMADD_SIZE_8BIT, threshold, 1, 100);
+	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 26, I2C_MEMADD_SIZE_8BIT, threshold, 1, 100);
+	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 27, I2C_MEMADD_SIZE_8BIT, threshold, 1, 100);
 	
   /* USER CODE END 2 */
 
