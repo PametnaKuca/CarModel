@@ -153,6 +153,8 @@ static uint8_t flag = 0;
 static uint8_t wiperFlag = 0;
 
 uint8_t analogData[24];
+float outputData[12] = {0};
+uint8_t refData[24];
 
 /* USER CODE END PV */
 
@@ -213,7 +215,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint8_t testData[1] = {5};
 	uint8_t pulseScale[1] = {0x63};
-	uint8_t threshold[1] = {5};
+	uint8_t threshold[1] = {7};
 
   /* USER CODE END 1 */
 
@@ -1293,7 +1295,7 @@ void StartTaskProximity(void const * argument)
 {
   /* USER CODE BEGIN StartTaskProximity */
 	uint8_t data[2];
-	uint8_t analogData[24];
+
 	uint8_t distance;
 	char* message;
 	
@@ -1302,40 +1304,55 @@ void StartTaskProximity(void const * argument)
   {
 		if(HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 3, I2C_MEMADD_SIZE_8BIT, data, 2, 100) == HAL_OK){
 		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 0x03, I2C_MEMADD_SIZE_8BIT, data, 2, 100);
-			if((data[0] & KEY_MASK) != 0)
+			HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 52, I2C_MEMADD_SIZE_8BIT, analogData, sizeof(analogData), 100);
+			HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 76, I2C_MEMADD_SIZE_8BIT, refData, sizeof(refData), 100);
+			if((data[0] & KEY_MASK) != 0){
 				//distance = calculateDistance(refData,curData);
 				//message = createPackage(PROXIMITY_ID,RM_PROXIMITY_SUB_ID,1,distance);
+				outputData[0] = (float)((analogData[0]-refData[0])/refData[0]);
+				outputData[1] = (float)((analogData[1]-refData[1])/refData[1]);
 				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
-			else 
+			} else {
 				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
-			
-			if((data[0] & (KEY_MASK << 4)) != 0)
+			}
+			if((data[0] & (KEY_MASK << 4)) != 0){
 				HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port, LF_DOOR_CLOSED_Pin, GPIO_PIN_SET);
-			else
+				outputData[2] = (float)((analogData[8]-refData[8])/refData[8]);
+				outputData[3] = (float)((analogData[9]-refData[9])/refData[9]);
+			} else {
 				HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port, LF_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
-			
-			if((data[0] & (KEY_MASK << 5)) != 0)
+			}
+			if((data[0] & (KEY_MASK << 5)) != 0){
 				HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_SET);
-			else
+				outputData[4] = (float)((analogData[10]-refData[10])/refData[10]);
+				outputData[5] = (float)((analogData[11]-refData[11])/refData[11]);
+			} else {
 				HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
-			
-			if((data[1] & (KEY_MASK << 1)) != 0)
+			}
+			if((data[1] & (KEY_MASK << 1)) != 0){
 				HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port, RR_DOOR_LOCKED_Pin, GPIO_PIN_SET);
-			else
+				outputData[6] = (float)((analogData[18]-refData[18])/refData[18]);
+				outputData[7] = (float)((analogData[19]-refData[19])/refData[19]);
+			} else {
 				HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port, RR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
-			
-			if((data[1] & (KEY_MASK << 2)) != 0)
+			}
+			if((data[1] & (KEY_MASK << 2)) != 0){
 				HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_SET);
-			else 
+				outputData[8] = (float)((analogData[20]-refData[20])/refData[20]);
+				outputData[9] = (float)((analogData[21]-refData[21])/refData[21]);
+			} else {
 				HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
-			
-			if((data[1] & (KEY_MASK << 3)) != 0)
+			}
+			if((data[1] & (KEY_MASK << 3)) != 0){
 				HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
-			else
+				outputData[10] = (float)((analogData[22]-refData[22])/refData[22]);
+				outputData[11] = (float)((analogData[23]-refData[23])/refData[23]);
+			} else {
 				HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
-
+			}
 		}
-		HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 52, I2C_MEMADD_SIZE_8BIT, analogData, 24, 100);
+		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 52, I2C_MEMADD_SIZE_8BIT, analogData, sizeof(analogData), 100);
+		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 76, I2C_MEMADD_SIZE_8BIT, refData, sizeof(refData), 100);
 		HAL_UART_Transmit(&huart3, analogData, sizeof(analogData), 100);
 		
     osDelay(50);
