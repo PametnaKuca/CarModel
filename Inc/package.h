@@ -21,7 +21,7 @@
 *	The function measures and returns string length.
 * @param string which we want to measure
 */
-//short stringLength(char *str);
+short stringLength(char *str);
 /**
 *	The function packs all the data into data package and returns this package
 * as a string. It adds XOR byte at the end for error detection.

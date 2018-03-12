@@ -79,8 +79,8 @@
 #define LF_DOOR_SUB_ID					0x03
 #define LR_DOOR_SUB_ID					0x04
 
-#define PROXIMITY_ID						0x08
-#define RM_PROXIMITY_SUB_ID			0x01
+#define PROXIMITY_ID						0x40
+#define RM_PROXIMITY_SUB_ID			0x43
 #define	RF_PROXIMITY_SUB_ID			0x02
 #define LF_PROXIMITY_SUB_ID			0x03
 #define	LM_PROXIMITY_SUB_ID			0x04
@@ -152,9 +152,12 @@ uint8_t *dataField;
 static uint8_t flag = 0;
 static uint8_t wiperFlag = 0;
 
+uint8_t data[2];
+uint8_t dataKeys[2];
 uint8_t analogData[24];
-float outputData[12] = {0};
+float outputData[6] = {0};
 uint8_t refData[24];
+char* message;
 
 /* USER CODE END PV */
 
@@ -215,7 +218,8 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint8_t testData[1] = {5};
 	uint8_t pulseScale[1] = {0x63};
-	uint8_t threshold[1] = {7};
+	uint8_t threshold[1] = {8};
+	uint8_t noAutoCalibration[1] = {0};
 
   /* USER CODE END 1 */
 
@@ -250,6 +254,7 @@ int main(void)
 
 	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 6, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
 	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 8, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
+	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 12, I2C_MEMADD_SIZE_8BIT, noAutoCalibration, 1, 100);
 	
 	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 40, I2C_MEMADD_SIZE_8BIT, pulseScale, 1, 100);
 	HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 44, I2C_MEMADD_SIZE_8BIT, pulseScale, 1, 100);
@@ -1026,9 +1031,9 @@ void StartDefaultTask(void const * argument)
 {
 
   /* USER CODE BEGIN 5 */
-	char *message;
+	//char *message;
 	char ID, subID;
-	int size;
+	//int size;
 	
 	ID = 0x01;
 	subID = 0x01;
@@ -1039,7 +1044,7 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
 		xSemaphoreTake(myMutex01Handle, portMAX_DELAY);
-		//if(HAL_UART_Receive(&huart3, (uint8_t *) message, 100, 10) == HAL_OK)
+		//if(HAL_UART_Receive(&huart4, (uint8_t *) message, 100, 10) == HAL_OK)
 		//{
 			xSemaphoreGive(myMutex01Handle);
 			// size = getSize(message);
@@ -1294,66 +1299,87 @@ void StartTaskInterior(void const * argument)
 void StartTaskProximity(void const * argument)
 {
   /* USER CODE BEGIN StartTaskProximity */
-	uint8_t data[2];
+	//uint8_t data[2];
 
-	uint8_t distance;
-	char* message;
+	char distance[12];
+	uint32_t tempAnalog;
+	uint32_t tempRef;
+	//char* message;
 	
   /* Infinite loop */
   for(;;)
   {
+		// TODO: convert two 16-bit values to 32-bit, store it to outputData and convert to string
 		if(HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 3, I2C_MEMADD_SIZE_8BIT, data, 2, 100) == HAL_OK){
-		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, (uint16_t) 0x03, I2C_MEMADD_SIZE_8BIT, data, 2, 100);
 			HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 52, I2C_MEMADD_SIZE_8BIT, analogData, sizeof(analogData), 100);
 			HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 76, I2C_MEMADD_SIZE_8BIT, refData, sizeof(refData), 100);
 			if((data[0] & KEY_MASK) != 0){
 				//distance = calculateDistance(refData,curData);
 				//message = createPackage(PROXIMITY_ID,RM_PROXIMITY_SUB_ID,1,distance);
-				outputData[0] = (float)((analogData[0]-refData[0])/refData[0]);
-				outputData[1] = (float)((analogData[1]-refData[1])/refData[1]);
 				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
+				tempAnalog = (uint32_t) analogData[0] << 16 | analogData[1];
+				tempRef = (uint32_t) refData[0] << 16 | refData[1];
+				outputData[0] = (float)(tempAnalog - tempRef)/tempRef;
+				sprintf(distance, "%.3f", outputData[0]);
+				message = createPackage(PROXIMITY_ID,RM_PROXIMITY_SUB_ID,0x47,distance);
 			} else {
 				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
+				message = "";
 			}
 			if((data[0] & (KEY_MASK << 4)) != 0){
 				HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port, LF_DOOR_CLOSED_Pin, GPIO_PIN_SET);
-				outputData[2] = (float)((analogData[8]-refData[8])/refData[8]);
-				outputData[3] = (float)((analogData[9]-refData[9])/refData[9]);
+				tempAnalog = (uint32_t) analogData[8] << 16 | analogData[9];
+				tempRef = (uint32_t) refData[8] << 16 | refData[9];
+				outputData[1] = (float)(tempAnalog - tempRef)/tempRef;
+				sprintf(distance, "%.3f", outputData[1]);
+				message = createPackage(PROXIMITY_ID,RF_PROXIMITY_SUB_ID,0x47,distance);
 			} else {
 				HAL_GPIO_WritePin(LF_DOOR_CLOSED_GPIO_Port, LF_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
 			}
 			if((data[0] & (KEY_MASK << 5)) != 0){
 				HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_SET);
-				outputData[4] = (float)((analogData[10]-refData[10])/refData[10]);
-				outputData[5] = (float)((analogData[11]-refData[11])/refData[11]);
+				tempAnalog = (uint32_t) analogData[10] << 16 | analogData[11];
+				tempRef = (uint32_t) refData[10] << 16 | refData[11];
+				outputData[2] = (float)(tempAnalog - tempRef)/tempRef;
+				sprintf(distance, "%.3f", outputData[2]);
+				message = createPackage(PROXIMITY_ID,LF_PROXIMITY_SUB_ID,0x47,distance);
 			} else {
 				HAL_GPIO_WritePin(LF_DOOR_LOCKED_GPIO_Port, LF_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
 			}
 			if((data[1] & (KEY_MASK << 1)) != 0){
 				HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port, RR_DOOR_LOCKED_Pin, GPIO_PIN_SET);
-				outputData[6] = (float)((analogData[18]-refData[18])/refData[18]);
-				outputData[7] = (float)((analogData[19]-refData[19])/refData[19]);
+				tempAnalog = (uint32_t) analogData[18] << 16 | analogData[19];
+				tempRef = (uint32_t) refData[18] << 16 | refData[19];
+				outputData[3] = (float)(tempAnalog - tempRef)/tempRef;
+				sprintf(distance, "%.3f", outputData[3]);
+				message = createPackage(PROXIMITY_ID,LF_PROXIMITY_SUB_ID,0x47,distance);
 			} else {
 				HAL_GPIO_WritePin(RR_DOOR_LOCKED_GPIO_Port, RR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
 			}
 			if((data[1] & (KEY_MASK << 2)) != 0){
 				HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_SET);
-				outputData[8] = (float)((analogData[20]-refData[20])/refData[20]);
-				outputData[9] = (float)((analogData[21]-refData[21])/refData[21]);
+				tempAnalog = (uint32_t) analogData[20] << 16 | analogData[21];
+				tempRef = (uint32_t) refData[20] << 16 | refData[21];
+				outputData[4] = (float)(tempAnalog - tempRef)/tempRef;
+				sprintf(distance, "%.3f", outputData[4]);
+				message = createPackage(PROXIMITY_ID,LM_PROXIMITY_SUB_ID,0x47,distance);
 			} else {
 				HAL_GPIO_WritePin(LR_DOOR_LOCKED_GPIO_Port, LR_DOOR_LOCKED_Pin, GPIO_PIN_RESET);
 			}
 			if((data[1] & (KEY_MASK << 3)) != 0){
 				HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
-				outputData[10] = (float)((analogData[22]-refData[22])/refData[22]);
-				outputData[11] = (float)((analogData[23]-refData[23])/refData[23]);
+				tempAnalog = (uint32_t) analogData[22] << 16 | analogData[23];
+				tempRef = (uint32_t) refData[22] << 16 | refData[23];
+				outputData[5] = (float)(tempAnalog - tempRef)/tempRef;
+				sprintf(distance, "%.3f", outputData[5]);
+				message = createPackage(PROXIMITY_ID,LR_PROXIMITY_SUB_ID,0x47,distance);
 			} else {
 				HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
 			}
 		}
 		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 52, I2C_MEMADD_SIZE_8BIT, analogData, sizeof(analogData), 100);
 		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 76, I2C_MEMADD_SIZE_8BIT, refData, sizeof(refData), 100);
-		HAL_UART_Transmit(&huart3, analogData, sizeof(analogData), 100);
+		HAL_UART_Transmit(&huart4, (uint8_t *) message, stringLength(message) + 1, 100);
 		
     osDelay(50);
   }
@@ -1693,36 +1719,36 @@ void StartTaskLockedLR(void const * argument)
 void StartTaskKeys(void const * argument)
 {
   /* USER CODE BEGIN StartTaskKeys */
-	uint8_t data[2];
+	//uint8_t data[2];
 	
   /* Infinite loop */
   for(;;)
   {
-		if(HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 3, I2C_MEMADD_SIZE_8BIT, data, 2, 100) == HAL_OK){
-			if((data[0] & (KEY_MASK << 1)) != 0)
+		if(HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 3, I2C_MEMADD_SIZE_8BIT, dataKeys, 2, 100) == HAL_OK){
+			if((dataKeys[0] & (KEY_MASK << 1)) != 0)
 				HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_SET);
 			else 
 				HAL_GPIO_WritePin(LF_BLINKER_GPIO_Port, LF_BLINKER_Pin, GPIO_PIN_RESET);
-			if((data[0] & (KEY_MASK << 2)) != 0)
+			if((dataKeys[0] & (KEY_MASK << 2)) != 0)
 				HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LM_BLINKER_Pin, GPIO_PIN_SET);
 			else 
 				HAL_GPIO_WritePin(LM_BLINKER_GPIO_Port, LM_BLINKER_Pin, GPIO_PIN_RESET);
-			if((data[0] & (KEY_MASK << 3)) != 0)
+			if((dataKeys[0] & (KEY_MASK << 3)) != 0)
 				HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LR_BLINKER_Pin, GPIO_PIN_SET);
 			else 
 				HAL_GPIO_WritePin(LR_BLINKER_GPIO_Port, LR_BLINKER_Pin, GPIO_PIN_RESET);
-			if((data[0] & (KEY_MASK << 6)) != 0)
+			if((dataKeys[0] & (KEY_MASK << 6)) != 0)
 				HAL_GPIO_WritePin(L_HIGH_BEAM_GPIO_Port, L_HIGH_BEAM_Pin, GPIO_PIN_SET);
 			else 
 				HAL_GPIO_WritePin(L_HIGH_BEAM_GPIO_Port, L_HIGH_BEAM_Pin, GPIO_PIN_RESET);
-			if((data[0] & (KEY_MASK << 7)) != 0)
+			if((dataKeys[0] & (KEY_MASK << 7)) != 0)
 				HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port, R_HIGH_BEAM_Pin, GPIO_PIN_SET);
 			else 
 				HAL_GPIO_WritePin(R_HIGH_BEAM_GPIO_Port, R_HIGH_BEAM_Pin, GPIO_PIN_RESET);
-			if((data[1] & (KEY_MASK)) != 0)
-				setPWM(htim11, TIM_CHANNEL_1, 255, 255);
-			else 
-				setPWM(htim11, TIM_CHANNEL_1, 255, 0);
+			//if((dataKeys[1] & (KEY_MASK)) != 0)
+				//setPWM(htim11, TIM_CHANNEL_1, 255, 255);
+			//else 
+				//setPWM(htim11, TIM_CHANNEL_1, 255, 0);
 		}
     osDelay(10);
   }
