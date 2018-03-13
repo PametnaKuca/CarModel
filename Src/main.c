@@ -147,7 +147,6 @@ osMutexId myMutex09Handle;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-int16_t button=0;
 uint8_t *dataField;
 static uint8_t flag = 0;
 static uint8_t wiperFlag = 0;
@@ -1034,30 +1033,26 @@ void StartDefaultTask(void const * argument)
   /* USER CODE BEGIN 5 */
 	//char *message;
 	char ID, subID;
-	//int size;
+	int size;
 	
-	ID = 0x01;
-	subID = 0x01;
-	uint8_t testData[1] = {5};
-	dataField[0] = '1';
-	dataField[1] = '\0';
+	uint8_t calibrate[1] = {5};
 	
   /* Infinite loop */
   for(;;)
   {
 		xSemaphoreTake(myMutex01Handle, portMAX_DELAY);
-		//if(HAL_UART_Receive(&huart4, (uint8_t *) messageToReceive, 100, 10) == HAL_OK)
-		//{
+		if(HAL_UART_Receive(&huart4, (uint8_t *) messageToReceive, 100, 10) == HAL_OK)
+		{
 			xSemaphoreGive(myMutex01Handle);
-			// size = getSize(messageToReceive);
+			size = getSize(messageToReceive);
 			xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 			 
-			//if(checkIfValid(messageToReceive, size))
-			//{
+			if(checkIfValid(messageToReceive, size))
+			{
 				xSemaphoreGive(myMutex02Handle);
-				// ID = getID(messageToReceive);
-				// subID = getSubID(messageToReceive);
-				// dataField = getData(messageToReceive, size);
+				ID = getID(messageToReceive);
+				subID = getSubID(messageToReceive);
+				dataField = getData(messageToReceive, size);
 			
 				switch(ID)
 				{
@@ -1124,19 +1119,19 @@ void StartDefaultTask(void const * argument)
 						break;
 					case PROXIMITY_ID:
 						if(subID == RECALIBRATE)
-							HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 8, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
+							HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 8, I2C_MEMADD_SIZE_8BIT, calibrate, 1, 100);
 				}
-				ID++;
-				if (ID == 0x08)
-					ID = 0x01;
+				//ID++;
+				//if (ID == 0x08)
+					//ID = 0x01;
 				xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
-				if(dataField[1] == '1')
-					dataField[1] = '0';
-				else
-					dataField[1] = '1';
+				//if(dataField[1] == '1')
+				//	dataField[1] = '0';
+				//else
+				//	dataField[1] = '1';
 				xSemaphoreGive(myMutex02Handle);
-			//}
-		//}
+			}
+		}
 		HAL_GPIO_TogglePin(LD2_GPIO_Port,LD2_Pin);
 		xSemaphoreGive(myMutex01Handle);
   }
