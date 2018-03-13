@@ -79,14 +79,14 @@
 #define LF_DOOR_SUB_ID					0x03
 #define LR_DOOR_SUB_ID					0x04
 
-#define PROXIMITY_ID						0x40
-#define RM_PROXIMITY_SUB_ID			0x43
+#define PROXIMITY_ID						0x08
+#define RM_PROXIMITY_SUB_ID			0x01
 #define	RF_PROXIMITY_SUB_ID			0x02
 #define LF_PROXIMITY_SUB_ID			0x03
 #define	LM_PROXIMITY_SUB_ID			0x04
 #define LR_PROXIMITY_SUB_ID			0x05
 #define	RR_PROXIMITY_SUB_ID			0x06
-#define RECALIBRATE							0x07
+#define RECALIBRATE							0x99
 
 #define BUTTON_ID								0x09
 #define RR_BUTTON_SUB_ID				0x01
@@ -1038,6 +1038,7 @@ void StartDefaultTask(void const * argument)
 	
 	ID = 0x01;
 	subID = 0x01;
+	uint8_t testData[1] = {5};
 	dataField[0] = '1';
 	dataField[1] = '\0';
 	
@@ -1121,6 +1122,9 @@ void StartDefaultTask(void const * argument)
 								break;
 						}
 						break;
+					case PROXIMITY_ID:
+						if(subID == RECALIBRATE)
+							HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 8, I2C_MEMADD_SIZE_8BIT, testData, 1, 100);
 				}
 				ID++;
 				if (ID == 0x08)
@@ -1380,7 +1384,7 @@ void StartTaskProximity(void const * argument)
 		}
 		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 52, I2C_MEMADD_SIZE_8BIT, analogData, sizeof(analogData), 100);
 		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 76, I2C_MEMADD_SIZE_8BIT, refData, sizeof(refData), 100);
-		HAL_UART_Transmit(&huart4, (uint8_t *) messageToSend, stringLength(messageToSend) + 1, 100);
+		HAL_UART_Transmit(&huart4, (uint8_t *) messageToSend, stringLength(messageToSend), 100);
 		
     osDelay(50);
   }
