@@ -86,7 +86,7 @@
 #define	LM_PROXIMITY_SUB_ID			0x04
 #define LR_PROXIMITY_SUB_ID			0x05
 #define	RR_PROXIMITY_SUB_ID			0x06
-#define RECALIBRATE							0x99
+#define RECALIBRATE							0x20
 
 #define BUTTON_ID								0x09
 #define RR_BUTTON_SUB_ID				0x01
@@ -147,7 +147,7 @@ osMutexId myMutex09Handle;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-uint8_t *dataField;
+char *dataField;
 static uint8_t flag = 0;
 static uint8_t wiperFlag = 0;
 
@@ -157,7 +157,7 @@ uint8_t analogData[24];
 float outputData[6] = {0};
 uint8_t refData[24];
 char* messageToSend;
-char* messageToReceive;
+char messageToReceive[20];
 
 /* USER CODE END PV */
 
@@ -1031,7 +1031,6 @@ void StartDefaultTask(void const * argument)
 {
 
   /* USER CODE BEGIN 5 */
-	//char *message;
 	char ID, subID;
 	int size;
 	
@@ -1041,14 +1040,21 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
 		xSemaphoreTake(myMutex01Handle, portMAX_DELAY);
-		if(HAL_UART_Receive(&huart4, (uint8_t *) messageToReceive, 100, 10) == HAL_OK)
+		//strncpy(messageToReceive, "\x30\x30\x35\x01\x01\x47\x31\x43", 10);
+		messageToReceive[0] = 'y';
+		HAL_UART_Receive(&huart4, (uint8_t *) messageToReceive, sizeof(messageToReceive), 10);
+		
+		if(messageToReceive[0] != 'y')
 		{
+		//HAL_UART_Receive(&huart4, (uint8_t *) messageToReceive, sizeof(messageToReceive), 10);
+			HAL_GPIO_WritePin(R_LOW_BEAM_GPIO_Port, R_LOW_BEAM_Pin, GPIO_PIN_SET);
 			xSemaphoreGive(myMutex01Handle);
 			size = getSize(messageToReceive);
 			xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 			 
 			if(checkIfValid(messageToReceive, size))
 			{
+				HAL_GPIO_WritePin(L_LOW_BEAM_GPIO_Port, L_LOW_BEAM_Pin, GPIO_PIN_SET);
 				xSemaphoreGive(myMutex02Handle);
 				ID = getID(messageToReceive);
 				subID = getSubID(messageToReceive);
@@ -1121,14 +1127,7 @@ void StartDefaultTask(void const * argument)
 						if(subID == RECALIBRATE)
 							HAL_I2C_Mem_Write(&hi2c2, I2C_ADDRESS << 1, 8, I2C_MEMADD_SIZE_8BIT, calibrate, 1, 100);
 				}
-				//ID++;
-				//if (ID == 0x08)
-					//ID = 0x01;
 				xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
-				//if(dataField[1] == '1')
-				//	dataField[1] = '0';
-				//else
-				//	dataField[1] = '1';
 				xSemaphoreGive(myMutex02Handle);
 			}
 		}
@@ -1142,7 +1141,7 @@ void StartDefaultTask(void const * argument)
 void StartTaskLightsLow(void const * argument)
 {
   /* USER CODE BEGIN StartTaskLightsLow */
-	uint8_t *tempStr;
+	char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1175,7 +1174,7 @@ void StartTaskBlinkersRight(void const * argument)
 {
   /* USER CODE BEGIN StartTaskBlinkersRight */
 	// we declare it static for not losing data when changing tasks
-	static uint8_t *tempRBlinkerStr;
+	static char *tempRBlinkerStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempRBlinkerStr = dataField;
@@ -1212,7 +1211,7 @@ void StartTaskBlinkersRight(void const * argument)
 void StartTaskStopLights(void const * argument)
 {
   /* USER CODE BEGIN StartTaskStopLights */
-	uint8_t *tempStr;
+	char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1246,7 +1245,7 @@ void StartTaskInterior(void const * argument)
 	static int incDecR = 1;
 	static int incDecG = 1;
 	static int incDecB = 1;
-	uint8_t *tempStr;
+	char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1314,13 +1313,22 @@ void StartTaskProximity(void const * argument)
 			HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 52, I2C_MEMADD_SIZE_8BIT, analogData, sizeof(analogData), 100);
 			HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 76, I2C_MEMADD_SIZE_8BIT, refData, sizeof(refData), 100);
 			if((data[0] & KEY_MASK) != 0){
-				//distance = calculateDistance(refData,curData);
-				//message = createPackage(PROXIMITY_ID,RM_PROXIMITY_SUB_ID,1,distance);
+				// next few comments apply to every if condition
+				
+				// turns LED on - used for checking functionality, can be removed once the whole implementation sets in
 				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_SET);
+				
+				// convert two analog 16-bit values to one 32-bit and store it
 				tempAnalog = (uint32_t) analogData[0] << 16 | analogData[1];
+				
+				// convert two referent 16-bit data values to one 32-bit and store it
 				tempRef = (uint32_t) refData[0] << 16 | refData[1];
+				
+				// calculate the difference between raw analog data and referent data
 				outputData[0] = (float)(tempAnalog - tempRef)/tempRef;
 				sprintf(distance, "%.3f", outputData[0]);
+				
+				// create a message to send
 				messageToSend = createPackage(PROXIMITY_ID,RM_PROXIMITY_SUB_ID,0x47,distance);
 			} else {
 				HAL_GPIO_WritePin(RR_DOOR_CLOSED_GPIO_Port, RR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
@@ -1377,8 +1385,6 @@ void StartTaskProximity(void const * argument)
 				HAL_GPIO_WritePin(LR_DOOR_CLOSED_GPIO_Port, LR_DOOR_CLOSED_Pin, GPIO_PIN_RESET);
 			}
 		}
-		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 52, I2C_MEMADD_SIZE_8BIT, analogData, sizeof(analogData), 100);
-		//HAL_I2C_Mem_Read(&hi2c2, I2C_ADDRESS << 1, 76, I2C_MEMADD_SIZE_8BIT, refData, sizeof(refData), 100);
 		HAL_UART_Transmit(&huart4, (uint8_t *) messageToSend, stringLength(messageToSend), 100);
 		
     osDelay(50);
@@ -1390,7 +1396,7 @@ void StartTaskProximity(void const * argument)
 void StartTaskWiper(void const * argument)
 {
   /* USER CODE BEGIN StartTaskWiper */
-	uint8_t *tempStr, freq, onoff;
+	char *tempStr, freq, onoff;
 	uint16_t period = 1000;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
@@ -1466,7 +1472,7 @@ void StartTaskWiper(void const * argument)
 void StartTaskBlinkersLeft(void const * argument)
 {
   /* USER CODE BEGIN StartTaskBlinkersLeft */
-  static uint8_t *tempLBlinkerStr;
+  static char *tempLBlinkerStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempLBlinkerStr = dataField;
@@ -1503,7 +1509,7 @@ void StartTaskBlinkersLeft(void const * argument)
 void StartTaskLightsHigh(void const * argument)
 {
   /* USER CODE BEGIN StartTaskLightsHigh */
-  uint8_t *tempStr;
+  char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1535,7 +1541,7 @@ void StartTaskLightsHigh(void const * argument)
 void StartTaskClosedRF(void const * argument)
 {
   /* USER CODE BEGIN StartTaskClosedRF */
-	uint8_t *tempStr;
+	char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1558,7 +1564,7 @@ void StartTaskClosedRF(void const * argument)
 void StartTaskClosedRR(void const * argument)
 {
   /* USER CODE BEGIN StartTaskClosedRR */
-  uint8_t *tempStr;
+  char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1581,7 +1587,7 @@ void StartTaskClosedRR(void const * argument)
 void StartTaskClosedLF(void const * argument)
 {
   /* USER CODE BEGIN StartTaskClosedLF */
-  uint8_t *tempStr;
+  char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1604,7 +1610,7 @@ void StartTaskClosedLF(void const * argument)
 void StartTaskClosedLR(void const * argument)
 {
   /* USER CODE BEGIN StartTaskClosedLR */
-  uint8_t *tempStr;
+  char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1627,7 +1633,7 @@ void StartTaskClosedLR(void const * argument)
 void StartTaskLockedRF(void const * argument)
 {
   /* USER CODE BEGIN StartTaskLockedRF */
-  uint8_t *tempStr;
+  char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1650,7 +1656,7 @@ void StartTaskLockedRF(void const * argument)
 void StartTaskLockedRR(void const * argument)
 {
   /* USER CODE BEGIN StartTaskLockedRR */
-  uint8_t *tempStr;
+  char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1673,7 +1679,7 @@ void StartTaskLockedRR(void const * argument)
 void StartTaskLockedLF(void const * argument)
 {
   /* USER CODE BEGIN StartTaskLockedLF */
-  uint8_t *tempStr;
+  char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1696,7 +1702,7 @@ void StartTaskLockedLF(void const * argument)
 void StartTaskLockedLR(void const * argument)
 {
   /* USER CODE BEGIN StartTaskLockedLR */
-  uint8_t *tempStr;
+  char *tempStr;
 	
 	xSemaphoreTake(myMutex02Handle, portMAX_DELAY);
 	tempStr = dataField;
@@ -1719,7 +1725,6 @@ void StartTaskLockedLR(void const * argument)
 void StartTaskKeys(void const * argument)
 {
   /* USER CODE BEGIN StartTaskKeys */
-	//uint8_t data[2];
 	
   /* Infinite loop */
   for(;;)

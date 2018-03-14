@@ -3,7 +3,7 @@
 <title>Static Call Graph - [CarModelBoard\CarModelBoard.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image CarModelBoard\CarModelBoard.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060061: Last Updated: Tue Mar 13 13:47:02 2018
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060061: Last Updated: Wed Mar 14 17:01:37 2018
 <BR><P>
 <H3>Maximum Stack Usage =        756 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -791,6 +791,7 @@ Global Symbols
 <LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartTaskClosedLF
 <LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartTaskBlinkersRight
 <LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartTaskBlinkersLeft
+<LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartDefaultTask
 <LI><a href="#[f2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_GPIO_Init
 </UL>
 
@@ -1213,10 +1214,11 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_IRQHandler
 </UL>
 
-<P><STRONG><a name="[7e]"></a>StartDefaultTask</STRONG> (Thumb, 414 bytes, Stack size 24 bytes, main.o(i.StartDefaultTask))
+<P><STRONG><a name="[7e]"></a>StartDefaultTask</STRONG> (Thumb, 450 bytes, Stack size 24 bytes, main.o(i.StartDefaultTask))
 <BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = StartDefaultTask &rArr; HAL_I2C_Mem_Write &rArr; I2C_RequestMemoryWrite &rArr; I2C_WaitOnTXISFlagUntilTimeout &rArr; I2C_IsAcknowledgeFailed
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ed]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_Receive
+<LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
 <LI><a href="#[106]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_TogglePin
 <LI><a href="#[ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericSend
 <LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericReceive
@@ -1321,11 +1323,11 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = StartTaskLightsHigh &rArr; xQueueGenericReceive &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
-<LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericSend
 <LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericReceive
 <LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadSetPriority
 <LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
+<LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.constdata)
 </UL>
@@ -1333,11 +1335,11 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = StartTaskLightsLow &rArr; xQueueGenericReceive &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
-<LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 <LI><a href="#[ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericSend
 <LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericReceive
 <LI><a href="#[105]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadSetPriority
 <LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
+<LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.constdata)
 </UL>
@@ -1390,11 +1392,11 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[ef]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_Transmit
 <LI><a href="#[f3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
-<LI><a href="#[10b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 <LI><a href="#[107]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_Mem_Read
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;stringLength
 <LI><a href="#[10c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;createPackage
+<LI><a href="#[10b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.constdata)
 </UL>
@@ -1546,8 +1548,7 @@ Global Symbols
 <P><STRONG><a name="[10a]"></a>__2printf</STRONG> (Thumb, 0 bytes, Stack size 24 bytes, printfa.o(i.__0printf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = __2printf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;checkIfValid
-<LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartTaskLightsLow
+<BR>[Called By]<UL><LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartTaskLightsLow
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartTaskLightsHigh
 </UL>
 
@@ -1587,10 +1588,8 @@ Global Symbols
 
 <P><STRONG><a name="[16b]"></a>__scatterload_zeroinit</STRONG> (Thumb, 14 bytes, Stack size unknown bytes, handlers.o(i.__scatterload_zeroinit), UNUSED)
 
-<P><STRONG><a name="[101]"></a>checkIfValid</STRONG> (Thumb, 68 bytes, Stack size 24 bytes, package.o(i.checkIfValid))
-<BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = checkIfValid &rArr; __2printf
-</UL>
-<BR>[Calls]<UL><LI><a href="#[10a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2printf
+<P><STRONG><a name="[101]"></a>checkIfValid</STRONG> (Thumb, 48 bytes, Stack size 8 bytes, package.o(i.checkIfValid))
+<BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = checkIfValid
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartDefaultTask
 </UL>
@@ -1598,10 +1597,10 @@ Global Symbols
 <P><STRONG><a name="[10c]"></a>createPackage</STRONG> (Thumb, 78 bytes, Stack size 24 bytes, package.o(i.createPackage))
 <BR><BR>[Stack]<UL><LI>Max Depth = 48<LI>Call Chain = createPackage &rArr; __2sprintf
 </UL>
-<BR>[Calls]<UL><LI><a href="#[10b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
-<LI><a href="#[11c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcat
+<BR>[Calls]<UL><LI><a href="#[11c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcat
 <LI><a href="#[11d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;stringXOR
 <LI><a href="#[10d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;stringLength
+<LI><a href="#[10b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
 </UL>
 <BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartTaskProximity
 </UL>
@@ -1614,8 +1613,8 @@ Global Symbols
 <P><STRONG><a name="[104]"></a>getData</STRONG> (Thumb, 66 bytes, Stack size 24 bytes, package.o(i.getData))
 <BR><BR>[Stack]<UL><LI>Max Depth = 44<LI>Call Chain = getData &rArr; malloc
 </UL>
-<BR>[Calls]<UL><LI><a href="#[11e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
-<LI><a href="#[11c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcat
+<BR>[Calls]<UL><LI><a href="#[11c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;strcat
+<LI><a href="#[11e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
 </UL>
 <BR>[Called By]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;StartDefaultTask
 </UL>
